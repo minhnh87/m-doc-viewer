@@ -237,6 +237,64 @@ closeOutlineButton.addEventListener('click', () => {
   outlineSidebar.classList.remove('open');
 });
 
+// Keyboard navigation for outline (J/K keys)
+function setupKeyboardNavigation() {
+  document.addEventListener('keydown', (e) => {
+    // Ignore if user is typing in an input field
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+      return;
+    }
+
+    const links = document.querySelectorAll('.outline-link');
+    if (links.length === 0) return;
+
+    // Find current active link index
+    let currentIndex = -1;
+    links.forEach((link, index) => {
+      if (link.classList.contains('active')) {
+        currentIndex = index;
+      }
+    });
+
+    let newIndex = -1;
+
+    if (e.key === 'j' || e.key === 'J') {
+      // Next item
+      e.preventDefault();
+      if (currentIndex === -1) {
+        newIndex = 0;
+      } else {
+        newIndex = Math.min(currentIndex + 1, links.length - 1);
+      }
+    } else if (e.key === 'k' || e.key === 'K') {
+      // Previous item
+      e.preventDefault();
+      if (currentIndex === -1) {
+        newIndex = 0;
+      } else {
+        newIndex = Math.max(currentIndex - 1, 0);
+      }
+    }
+
+    if (newIndex !== -1 && newIndex !== currentIndex) {
+      // Update active state
+      links.forEach(l => l.classList.remove('active'));
+      links[newIndex].classList.add('active');
+
+      // Scroll to the heading
+      const targetId = links[newIndex].getAttribute('href').substring(1);
+      const target = document.getElementById(targetId);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      // Ensure the outline link is visible in sidebar
+      links[newIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  });
+}
+
 // Load file tree and markdown when page loads
 loadFileTree();
 loadMarkdown();
+setupKeyboardNavigation();
