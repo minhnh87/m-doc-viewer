@@ -1,0 +1,173 @@
+OC Bộ lệnh
+	Identity
+		Intention
+			Tại sao phải làm
+				Mục tiêu khách hàng
+					Trao quyền cho nhà đầu tư trong quản trị rủi ro và kỷ luật giao dịch thông qua tự động hóa
+						API
+						Nền tảng
+					Giúp khách hàng đặt sẵn kịch bản, giảm phụ thuộc vào việc theo dõi liên tục, giảm sai thao tác do áp lực thời gian
+				Mục tiêu kinh doanh
+					Khắc phục rào cản cạnh tranh do thiếu bộ lệnh điều kiện cơ bản theo nhu cầu thị trường
+						VND đang tụt lại so với thị trường về tính năng các lệnh điều kiện.
+							Bị đánh giá lỗi thời khi nhà đầu tư so sánh với các công ty chứng khoán khác
+					Tăng adoption lệnh điều kiện và giữ chân tệp khách hàng giao dịch chủ động
+				Khoanh lại phạm vi
+					Làm lại đủ các luồng lệnh 
+						Làm thành 1 MVP  bao gồm 2 lệnh điều kiện
+		Insight
+			Thực trạng
+				Thị trường và cạnh tranh
+					Các công ty CK khác
+						Thị trường có xu hướng mở rộng “hệ sinh thái lệnh” theo 2 lớp: Lệnh điều kiện (risk management) và lệnh chiến lược (tự động hóa theo kịch bản)
+							1. Các đối thủ trên thị trường đều có nhiều loại lệnh điều kiện: TCBS 6 lệnh, Mirae Asset 8 lệnh, SSI 6 lệnh
+							2. Các lệnh quản trị rủi ro cơ bản đã trở thành tiêu chuẩn
+								Hầu hết các công ty CK lớn như: VPS, TCBS, SSI, MBS, MAS đều cung cấp 2 lệnh cốt lõi: Trailing Stop và OCO
+									VND đang chậm trong việc đáp ứng nhu cầu của Khách hàng
+							3. Xu hướng dịch chuyển sang các lệnh giao dịch tự động và phức tạp hơn
+								TCBS và MAS đã cung cấp tới KH như lệnh dựa trên tín hiệu kỹ thuật, lệnh TWAP, Iceberg.\nDNSE cũng cung cấp lệnh đặt theo AI
+									Điều này cho thấy thị trường đang hướng tới việc tự động hóa các chiến lược giao dịch tinh vi
+							4. Phân khúc KH rõ rệt với nhu cầu khác nhau
+								Ví dụ: \nLệnh Tranh Mua/Bán nhắm thẳng vào DayTrader. Trong khi lệnh định kỳ sẽ nhắm vào nhà đầu tư dài hạn
+							5. Tăng thêm trải nghiệm người dùng
+								Các đối thủ cũng có các lệnh hỗ trợ trải nghiệm người dùng. 
+								SSI và TCBS có lệnh Bull & Bear (Take Profit / Stop loss) tự động hóa hoàn toàn vòng đời giao dịch
+					VNDIRECT
+						Chỉ đang hỗ trợ lệnh Stop Limit
+				Thực trạng sử dụng lệnh & đo lường
+					Dữ liệu từ nền tảng
+						Tỷ lệ sử dụng lệnh điều kiện khá thấp. Nhưng số lượng lệnh kích hoạt khá cao
+							Adoption lệnh điều kiện thấp: 5,6% tổng lệnh trong tháng 10; trung bình 0,28 lệnh điều kiện/khách hàng/ngày
+							Activation tốt: 54% lệnh điều kiện kích hoạt thành lệnh thường
+					Đo lường
+						Thiếu tracking funnel lệnh điều kiện
+				Nhu cầu từ phía MG/KH
+					Đội ngũ mong muốn có các bộ lệnh Trailing Stop cơ sở và OCO cơ sở
+						Đội ngũ quan tâm đến các lệnh có tính chất quản trị rủi ro và tự động hóa
+							Lệnh Trailing có 3.52 / 5 KH quan tâm
+							Lệnh OCO có 3.2 / 5 KH quan tâm
+					Rào cản UIUX làm tỷ lệ adoption thấp
+						Cải thiện về trải nghiệm người dùng
+							Trực quan hóa trên biểu đồ
+								Vừa đặt lệnh vừa xem biểu đồ
+							Có hướng dẫn sử dụng lệnh
+						Tăng sự tùy chỉnh và tự động hóa
+							Cá nhân hóa lệnh điều kiện
+								 Cho phép KH tùy chỉnh các tham số của lệnh
+							Tích hợp API đặt lệnh
+							Copy Trade
+			Chân dung khách hàng mục tiêu
+				Khách hàng giao dịch VNDTRADE có nhu cầu:
+					Kiểm soát rủi ro (cắt lỗ/chốt lời kỷ luật
+					Giảm phụ thuộc theo dõi liên tục trong giờ giao dịch
+					Tự động hóa kịch bản thắng/thua để giảm thao tác muộn và sai
+				Segment hành vi giao dịch
+					Day Traders 
+						Chân dung
+							Tần suất cao, quyết định nhanh trong phiên
+								Là khách hàng có 50 lệnh / tháng, vòng quay 15 lần / tháng
+						Pain points
+							Không kịp cắt lỗ khi biến động mạnh; phải theo dõi liên tục
+					Active Traders
+						Chân dung
+							Giao dịch thường xuyên nhưng bị gián đoạn giờ làm
+								KH có 15 lệnh / tháng và có vòng quay 6 lần / tháng
+						Pain points
+							Không thể canh bảng; lo lắng khi bận; bỏ lỡ điểm chốt lời
+					Swing Traders
+						Chân dung
+							Tần suất vừa; theo xu hướng vài ngày/tuần
+								Giao dịch 6 lệnh / tháng, check app 1 lần / ngày
+						Pain points
+							Giữ lệnh lỗ quá lâu; không rõ điểm chốt lời; bỏ lỡ breakout
+					Long-term Investors
+						Chân dung
+							KH ít giao dịch, ít khi sử dụng app
+						Pain points
+							Quên mua đều đặn hàng tháng
+							Không biết nên bán khi nào
+							Danh mục mất cân đối theo thời gian
+				Giải pháp giao dịch
+					Tự động hóa bảo vệ lợi nhuận và cắt lỗ tức thời
+					Đặt mục tiêu rõ ràng khi vào lệnh
+					Đặt trước kịch bản để không cần canh
+					Bảo vệ lợi nhuận trong xu hướng
+		Interbeing
+			BIS
+				A Long
+			Product Management
+				A Hoan, a Nam
+			CXM
+				c Vy
+			Pháp chế
+				C Liên Dương
+			VND BTU
+				Trading Platform
+					A Minh
+			Công nghệ
+				SA
+					A Thuận
+				Techlead
+					A Duy
+				BE
+					C Tuyết
+				FE
+					Techlead
+						A Giang
+					BA
+						Bách
+				QA
+					C Quỳnh
+		Innovation
+			TOM
+			COM
+			POM
+			DOM
+		Integrity
+	Packaging
+		Purpose
+			Ra mắt MVP bộ lệnh điều kiện giúp khách hàng giao dịch chủ động
+				Thiết lập kịch bản quản trị rủi ro
+				 Giảm phụ thuộc theo dõi liên tục
+				 Tăng kỷ luật giao dịch và giảm sai thao tác
+		Possibility
+			MVP bao gồm 2 lệnh điều kiện
+				Lệnh Trailing Stop – cơ sở
+				Lệnh OCO – cơ sở
+			Trải nghiệm khách hàng
+				Dual-mode order ticket: dọc + ngang; có lưu tùy chọn
+				 Hướng dẫn: định nghĩa ngắn + ví dụ + cảnh báo rủi ro tại điểm thao tác
+				 Tracking đầy đủ funnel bộ lệnh
+		Plan
+			Vai trò của từng người trong WKT
+				BIS
+					A Long
+				
+			Kế hoạch
+				2 tháng
+					Hiển thị lên trên bảng giá
+					Nguồn lực công nghệ
+						CDS
+							a Giang
+						BA
+							Bách
+						Tester
+							chưa có người
+						Gửi c Trang tài liệu thiết kế, plan và số lượng người cần
+					Đi theo CP khách hàng
+						Thiết kế BIS
+							App DSTOCK
+							Bảng giá DBoard 
+						Chốt thêm với bên Tự doanh và Môi giới để có thêm insight
+						Cuối tháng 12 sẽ có những loại lệnh nào? 
+							Ở đâu
+							Như thế nào
+						Gửi trước các insight trước cuộc họp
+							Gửi lại các tài liệu doc
+	Arrange
+		Awareness
+			BIS
+			BAS
+			CDS
+	Mapping
+		OMAP/AMAP

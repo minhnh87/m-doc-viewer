@@ -1,0 +1,435 @@
+<mxfile host="app.diagrams.net" modified="2024-12-07T00:00:00.000Z" agent="Claude AI" version="21.0.0">
+  <diagram name="Backtest Workflow" id="backtest-flow">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Title -->
+        <mxCell id="title" value="&lt;b&gt;BACKTEST TRADING STRATEGY - COMPLETE WORKFLOW&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontColor=#1a1a2e;" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="600" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Phase 1: Strategy Design -->
+        <mxCell id="phase1_header" value="PHASE 1: STRATEGY DESIGN" style="text;html=1;strokeColor=none;fillColor=#e8f4f8;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#0d47a1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="200" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="start" value="START" style="ellipse;whiteSpace=wrap;html=1;fillColor=#4CAF50;strokeColor=#2E7D32;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="130" width="80" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step1_1" value="1.1 Define Hypothesis&#xa;&#xa;• Trading idea&#xa;• Market behavior theory&#xa;• Expected edge" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="190" width="160" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step1_2" value="1.2 Define Rules&#xa;&#xa;• Entry signal&#xa;• Exit signal&#xa;• Stop loss / Take profit&#xa;• Position sizing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="300" width="160" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step1_3" value="1.3 Set Parameters&#xa;&#xa;• Indicator periods&#xa;• Thresholds&#xa;• Risk limits" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="420" width="160" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Phase 2: Data Preparation -->
+        <mxCell id="phase2_header" value="PHASE 2: DATA PREPARATION" style="text;html=1;strokeColor=none;fillColor=#fff3e0;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#e65100;" vertex="1" parent="1">
+          <mxGeometry x="280" y="80" width="200" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step2_1" value="2.1 Collect Data&#xa;&#xa;• Historical prices&#xa;• Volume data&#xa;• Fundamental data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="300" y="130" width="160" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step2_2" value="2.2 Data Quality Check&#xa;&#xa;• Missing values&#xa;• Outliers&#xa;• Timezone consistency" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="300" y="240" width="160" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step2_3" value="2.3 Adjust Data&#xa;&#xa;• Stock splits&#xa;• Dividends&#xa;• Corporate actions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="300" y="350" width="160" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="decision_survivorship" value="Survivorship&#xa;Bias&#xa;Addressed?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFECB3;strokeColor=#FFA000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="305" y="450" width="150" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Phase 3: Backtest Setup -->
+        <mxCell id="phase3_header" value="PHASE 3: BACKTEST SETUP" style="text;html=1;strokeColor=none;fillColor=#f3e5f5;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#7b1fa2;" vertex="1" parent="1">
+          <mxGeometry x="520" y="80" width="200" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step3_1" value="3.1 Define Time Periods&#xa;&#xa;• In-sample (70%)&#xa;• Out-of-sample (30%)&#xa;• Walk-forward windows" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="540" y="130" width="160" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step3_2" value="3.2 Configure Capital&#xa;&#xa;• Initial capital&#xa;• Leverage&#xa;• Max positions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="540" y="250" width="160" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step3_3" value="3.3 Set Transaction Costs&#xa;&#xa;• Brokerage fees&#xa;• Tax (STT)&#xa;• Slippage estimate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="540" y="360" width="160" height="90" as="geometry"/>
+        </mxCell>
+
+        <!-- Phase 4: Execution -->
+        <mxCell id="phase4_header" value="PHASE 4: BACKTEST EXECUTION" style="text;html=1;strokeColor=none;fillColor=#e8f5e9;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#2e7d32;" vertex="1" parent="1">
+          <mxGeometry x="760" y="80" width="200" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step4_1" value="4.1 Run Backtest Engine&#xa;&#xa;FOR each bar:&#xa;• Update data&#xa;• Calculate indicators&#xa;• Generate signals&#xa;• Execute orders&#xa;• Update portfolio" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="780" y="130" width="160" height="140" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step4_2" value="4.2 Record Results&#xa;&#xa;• Trade log&#xa;• Equity curve&#xa;• Drawdown series" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="780" y="290" width="160" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="decision_bias" value="Look-ahead&#xa;Bias&#xa;Check?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#388E3C;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="785" y="400" width="150" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- Phase 5: Performance Analysis -->
+        <mxCell id="phase5_header" value="PHASE 5: PERFORMANCE ANALYSIS" style="text;html=1;strokeColor=none;fillColor=#fce4ec;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#c2185b;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="80" width="220" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step5_1" value="5.1 Calculate Returns&#xa;&#xa;• Total return&#xa;• CAGR&#xa;• Monthly returns" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#C2185B;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="130" width="160" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step5_2" value="5.2 Calculate Risk Metrics&#xa;&#xa;• Max Drawdown&#xa;• Volatility&#xa;• VaR" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#C2185B;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="240" width="160" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step5_3" value="5.3 Risk-Adjusted Metrics&#xa;&#xa;• Sharpe Ratio&#xa;• Sortino Ratio&#xa;• Calmar Ratio" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#C2185B;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="350" width="160" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step5_4" value="5.4 Trade Statistics&#xa;&#xa;• Win rate&#xa;• Profit factor&#xa;• Avg holding period" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#C2185B;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="460" width="160" height="90" as="geometry"/>
+        </mxCell>
+
+        <!-- Phase 6: Validation -->
+        <mxCell id="phase6_header" value="PHASE 6: VALIDATION" style="text;html=1;strokeColor=none;fillColor=#e0f2f1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#00695c;" vertex="1" parent="1">
+          <mxGeometry x="40" y="540" width="200" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step6_1" value="6.1 Out-of-Sample Test&#xa;&#xa;Test on unseen 30% data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="590" width="160" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step6_2" value="6.2 Walk-Forward Analysis&#xa;&#xa;Rolling train/test windows" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="680" width="160" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step6_3" value="6.3 Monte Carlo Simulation&#xa;&#xa;Shuffle trades 1000+ times" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00897B;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="770" width="160" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="decision_robust" value="Results&#xa;Robust?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#B2DFDB;strokeColor=#00897B;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="65" y="860" width="150" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- Phase 7: Optimization -->
+        <mxCell id="phase7_header" value="PHASE 7: OPTIMIZATION" style="text;html=1;strokeColor=none;fillColor=#fffde7;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#f57f17;" vertex="1" parent="1">
+          <mxGeometry x="280" y="540" width="200" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step7_1" value="7.1 Parameter Tuning&#xa;&#xa;Grid search / Bayesian&#xa;optimization" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#FBC02D;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="300" y="590" width="160" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step7_2" value="7.2 Robustness Check&#xa;&#xa;• ±10% parameter change&#xa;• Different markets&#xa;• Stress test" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#FBC02D;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="300" y="690" width="160" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="decision_overfit" value="Overfitting&#xa;Risk?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#FBC02D;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="305" y="800" width="150" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- Phase 8: Go Live -->
+        <mxCell id="phase8_header" value="PHASE 8: GO LIVE" style="text;html=1;strokeColor=none;fillColor=#efebe9;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=12;fontStyle=1;fontColor=#4e342e;" vertex="1" parent="1">
+          <mxGeometry x="520" y="540" width="200" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step8_1" value="8.1 Paper Trading&#xa;&#xa;1-3 months simulation&#xa;with real-time data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFEBE9;strokeColor=#795548;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="540" y="590" width="160" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="decision_paper" value="Paper&#xa;Trading&#xa;Profitable?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#D7CCC8;strokeColor=#795548;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="545" y="690" width="150" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step8_2" value="8.2 Live Trading&#xa;&#xa;• Start with 10% capital&#xa;• Scale up gradually&#xa;• Monitor continuously" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFEBE9;strokeColor=#795548;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="540" y="790" width="160" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="step8_3" value="8.3 Continuous Monitoring&#xa;&#xa;• Daily P&amp;L&#xa;• Drawdown alerts&#xa;• Performance drift" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EFEBE9;strokeColor=#795548;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="540" y="900" width="160" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="end" value="LIVE&#xa;TRADING" style="ellipse;whiteSpace=wrap;html=1;fillColor=#4CAF50;strokeColor=#2E7D32;fontColor=#ffffff;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="760" y="920" width="100" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Arrows / Connections -->
+        <mxCell id="arrow1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="start" target="step1_1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step1_1" target="step1_2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step1_2" target="step1_3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step1_3" target="step2_1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="140" y="520"/>
+              <mxPoint x="260" y="520"/>
+              <mxPoint x="260" y="175"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="arrow5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step2_1" target="step2_2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step2_2" target="step2_3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step2_3" target="decision_survivorship">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow8_yes" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#4CAF50;strokeWidth=2;fontColor=#4CAF50;" edge="1" parent="1" source="decision_survivorship" target="step3_1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="500" y="490"/>
+              <mxPoint x="500" y="180"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="arrow8_no" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F44336;strokeWidth=2;fontColor=#F44336;dashed=1;" edge="1" parent="1" source="decision_survivorship" target="step2_1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="380" y="560"/>
+              <mxPoint x="480" y="560"/>
+              <mxPoint x="480" y="60"/>
+              <mxPoint x="380" y="60"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="arrow9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step3_1" target="step3_2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step3_2" target="step3_3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step3_3" target="step4_1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="620" y="470"/>
+              <mxPoint x="740" y="470"/>
+              <mxPoint x="740" y="200"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="arrow12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step4_1" target="step4_2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step4_2" target="decision_bias">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow14_yes" value="Pass" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#4CAF50;strokeWidth=2;fontColor=#4CAF50;" edge="1" parent="1" source="decision_bias" target="step5_1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="980" y="440"/>
+              <mxPoint x="980" y="175"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="arrow14_no" value="Fail" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F44336;strokeWidth=2;fontColor=#F44336;dashed=1;" edge="1" parent="1" source="decision_bias" target="step4_1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="860" y="510"/>
+              <mxPoint x="960" y="510"/>
+              <mxPoint x="960" y="60"/>
+              <mxPoint x="860" y="60"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="arrow15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step5_1" target="step5_2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step5_2" target="step5_3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step5_3" target="step5_4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step5_4" target="step6_1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1110" y="570"/>
+              <mxPoint x="1240" y="570"/>
+              <mxPoint x="1240" y="1010"/>
+              <mxPoint x="20" y="1010"/>
+              <mxPoint x="20" y="625"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="arrow19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step6_1" target="step6_2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step6_2" target="step6_3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step6_3" target="decision_robust">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow22_yes" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#4CAF50;strokeWidth=2;fontColor=#4CAF50;" edge="1" parent="1" source="decision_robust" target="step7_1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="250" y="895"/>
+              <mxPoint x="250" y="630"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="arrow22_no" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F44336;strokeWidth=2;fontColor=#F44336;dashed=1;" edge="1" parent="1" source="decision_robust" target="step1_2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="140" y="960"/>
+              <mxPoint x="10" y="960"/>
+              <mxPoint x="10" y="350"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="arrow23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step7_1" target="step7_2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step7_2" target="decision_overfit">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow25_no" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#4CAF50;strokeWidth=2;fontColor=#4CAF50;" edge="1" parent="1" source="decision_overfit" target="step8_1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="490" y="835"/>
+              <mxPoint x="490" y="630"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="arrow25_yes" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F44336;strokeWidth=2;fontColor=#F44336;dashed=1;" edge="1" parent="1" source="decision_overfit" target="step1_3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="380" y="900"/>
+              <mxPoint x="240" y="900"/>
+              <mxPoint x="240" y="460"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="arrow26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step8_1" target="decision_paper">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow27_yes" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#4CAF50;strokeWidth=2;fontColor=#4CAF50;" edge="1" parent="1" source="decision_paper" target="step8_2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow27_no" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F44336;strokeWidth=2;fontColor=#F44336;dashed=1;" edge="1" parent="1" source="decision_paper" target="step7_1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="695" y="730"/>
+              <mxPoint x="730" y="730"/>
+              <mxPoint x="730" y="560"/>
+              <mxPoint x="380" y="560"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="arrow28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="step8_2" target="step8_3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="arrow29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#4CAF50;strokeWidth=3;" edge="1" parent="1" source="step8_3" target="end">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#BDBDBD;" vertex="1" parent="1">
+          <mxGeometry x="900" y="570" width="280" height="120" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="legend_title" value="&lt;b&gt;LEGEND&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="575" width="80" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="legend_arrow1" value="" style="endArrow=classic;html=1;strokeColor=#4CAF50;strokeWidth=2;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="920" y="610" as="sourcePoint"/>
+            <mxPoint x="970" y="610" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend_text1" value="Pass / Yes / Success" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="980" y="600" width="120" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="legend_arrow2" value="" style="endArrow=classic;html=1;strokeColor=#F44336;strokeWidth=2;dashed=1;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="920" y="640" as="sourcePoint"/>
+            <mxPoint x="970" y="640" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend_text2" value="Fail / No / Review" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="980" y="630" width="120" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="legend_decision" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFECB3;strokeColor=#FFA000;" vertex="1" parent="1">
+          <mxGeometry x="930" y="655" width="30" height="25" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend_text3" value="Decision Point" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="980" y="657" width="100" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- Key Metrics Box -->
+        <mxCell id="metrics_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#BDBDBD;" vertex="1" parent="1">
+          <mxGeometry x="900" y="710" width="280" height="150" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="metrics_title" value="&lt;b&gt;KEY SUCCESS METRICS&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="970" y="715" width="140" height="20" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="metrics_content" value="• Sharpe Ratio &gt; 1.0&#xa;• Max Drawdown &lt; 20%&#xa;• Win Rate &gt; 50%&#xa;• Profit Factor &gt; 1.5&#xa;• Out-of-sample positive&#xa;• Walk-forward validated" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=10;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="910" y="740" width="260" height="110" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

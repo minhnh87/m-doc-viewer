@@ -49,7 +49,7 @@ async function loadFileTree() {
       for (const file of folderFiles) {
         const isActive = file.path === currentFilePath;
         html += `
-          <a href="view.html?path=${encodeURIComponent(file.path)}"
+          <a href="index.html?path=${encodeURIComponent(file.path)}"
              class="tree-file ${isActive ? 'active' : ''}"
              data-path="${file.path}">
             <svg class="tree-icon file-icon" viewBox="0 0 16 16" width="16" height="16">

@@ -3,22 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Markdown Files - Home</title>
+  <title>Markdown Viewer</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>📚 Markdown Files Repository</h1>
-      <p class="subtitle">Browse and read all markdown files in your research folder</p>
+  <div class="viewer-container">
+    <header class="viewer-header">
+      <div class="header-left">
+        <a href="/" class="back-button">← Files</a>
+      </div>
+      <div class="header-center">
+        <h1 id="file-title" class="file-title">Loading...</h1>
+      </div>
+      <div class="header-right"></div>
     </header>
 
-    <main>
-      <div id="loading" class="loading">Loading files...</div>
-      <div id="file-list" class="file-list"></div>
-    </main>
+    <div class="viewer-layout">
+      <!-- Left Sidebar: File Tree -->
+      <aside class="file-tree-sidebar">
+        <div class="file-tree-header">
+          <h3>Files</h3>
+          <button id="close-file-tree" class="close-sidebar">✕</button>
+        </div>
+        <nav id="file-tree" class="file-tree">
+          <div class="loading-tree">Loading files...</div>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="viewer-content">
+        <div id="loading" class="loading">Loading markdown...</div>
+        <div id="markdown-content" class="markdown-body"></div>
+      </main>
+
+      <!-- Right Sidebar: Outline -->
+      <aside class="outline-sidebar">
+        <div class="outline-header">
+          <h3>Outline</h3>
+          <button id="close-outline" class="close-sidebar">✕</button>
+        </div>
+        <nav id="outline" class="outline"></nav>
+      </aside>
+    </div>
+
+    <!-- Mobile Toggle Buttons -->
+    <button id="toggle-file-tree" class="toggle-file-tree">
+      <span>☰</span> Files
+    </button>
+    <button id="toggle-outline" class="toggle-outline">
+      <span>☰</span> Outline
+    </button>
   </div>
 
-  <script src="app.js"></script>
+  <script src="view.js"></script>
 </body>
 </html>

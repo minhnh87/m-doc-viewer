@@ -34,7 +34,7 @@ async function loadFiles() {
       for (const file of folderFiles) {
         const encodedPath = encodeURIComponent(file.path);
         html += `
-          <a href="view.html?path=${encodedPath}" class="file-card">
+          <a href="index.html?path=${encodedPath}" class="file-card">
             <div class="file-icon">📄</div>
             <div class="file-info">
               <div class="file-name">${file.name}</div>
