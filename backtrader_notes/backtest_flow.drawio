@@ -1,0 +1,893 @@
+<mxfile host="app.diagrams.net" modified="2026-01-06T00:00:00.000Z" agent="Claude" version="21.0.0">
+  <diagram id="backtest-overview" name="Overview - All Modes">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="&lt;b&gt;BACKTEST FLOW OVERVIEW - 4 MODES&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=24;" vertex="1" parent="1">
+          <mxGeometry x="500" y="20" width="500" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1300" y="80" width="250" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="legend-title" value="&lt;b&gt;LEGEND&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1350" y="85" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend1" value="bt_db: Historical Backtest" style="text;html=1;strokeColor=none;fillColor=#dae8fc;align=left;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="110" width="180" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend2" value="db: Live Simulation" style="text;html=1;strokeColor=none;fillColor=#d5e8d4;align=left;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="135" width="180" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend3" value="fw_db: Forward Mode" style="text;html=1;strokeColor=none;fillColor=#fff2cc;align=left;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="160" width="180" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="legend4" value="api: API Direct Mode" style="text;html=1;strokeColor=none;fillColor=#f8cecc;align=left;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1310" y="185" width="180" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Entry Point -->
+        <mxCell id="entry" value="&lt;b&gt;run.py&lt;/b&gt;&#xa;(CLI Entry Point)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="680" y="80" width="140" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Parse Args -->
+        <mxCell id="parse" value="Parse Arguments&#xa;--mode [bt_db|db|fw_db|api]&#xa;--from-date --to-date" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="650" y="170" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Mode Switch -->
+        <mxCell id="mode-switch" value="&lt;b&gt;CORE_SOURCE&lt;/b&gt;&#xa;Mode Selection" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="670" y="270" width="160" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- 4 Mode Boxes -->
+        <mxCell id="bt_db" value="&lt;b&gt;bt_db&lt;/b&gt;&#xa;Historical Backtest&#xa;&#xa;- Trino data only&#xa;- Date: 2022-10 to 2024-12&#xa;- Indicators pre-computed&#xa;- Auto-stop at end" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="180" y="400" width="200" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="db" value="&lt;b&gt;db&lt;/b&gt;&#xa;Live Simulation&#xa;&#xa;- Trino + FiinQuant&#xa;- Starts: 2025-12-13&#xa;- DB position tracking&#xa;- Auto-stop: tomorrow=today" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="460" y="400" width="200" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fw_db" value="&lt;b&gt;fw_db&lt;/b&gt;&#xa;Forward Mode&#xa;&#xa;- Trino + FiinQuant&#xa;- Price validation (7%)&#xa;- Wait for future data&#xa;- No auto-stop" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="740" y="400" width="200" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="api" value="&lt;b&gt;api&lt;/b&gt;&#xa;API Direct&#xa;&#xa;- FiinQuant API primary&#xa;- Always rebalance&#xa;- Real-time focused&#xa;- No auto-stop" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="400" width="200" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- BacktestRunner -->
+        <mxCell id="runner" value="&lt;b&gt;BacktestRunner&lt;/b&gt;&#xa;engine/runner.py" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="650" y="570" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Data Loading -->
+        <mxCell id="data-load" value="&lt;b&gt;_load_data()&lt;/b&gt;&#xa;Mode-aware data loading" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="650" y="660" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Data Sources Side by Side -->
+        <mxCell id="trino" value="&lt;b&gt;TrinoDailyLoader&lt;/b&gt;&#xa;Historical OHLCV&#xa;(All modes)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="500" y="750" width="150" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fiin" value="&lt;b&gt;FiinDataLoader&lt;/b&gt;&#xa;Live prices at 13:55&#xa;(db, fw_db, api)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="850" y="750" width="150" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Cerebro -->
+        <mxCell id="cerebro" value="&lt;b&gt;cerebro.run()&lt;/b&gt;&#xa;Backtrader Engine" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="650" y="870" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Strategy -->
+        <mxCell id="strategy" value="&lt;b&gt;QPMMTStrategy.next()&lt;/b&gt;&#xa;strategies/qpmmt/strategy.py" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="650" y="960" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Output -->
+        <mxCell id="output" value="&lt;b&gt;OUTPUT&lt;/b&gt;&#xa;- CSV files (results/)&#xa;- PostgreSQL (db, fw_db, api)&#xa;- Logs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="650" y="1050" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Arrows -->
+        <mxCell id="arr1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="entry" target="parse">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="parse" target="mode-switch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Mode Switch Arrows -->
+        <mxCell id="arr-bt" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;" edge="1" parent="1" source="mode-switch" target="bt_db">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-db" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;" edge="1" parent="1" source="mode-switch" target="db">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-fw" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#d6b656;" edge="1" parent="1" source="mode-switch" target="fw_db">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-api" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b85450;" edge="1" parent="1" source="mode-switch" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Converge to Runner -->
+        <mxCell id="arr-conv1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="bt_db" target="runner">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-conv2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="db" target="runner">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-conv3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="fw_db" target="runner">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr-conv4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="api" target="runner">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="arr3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="runner" target="data-load">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr4a" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="data-load" target="trino">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr4b" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="data-load" target="fiin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr5a" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="trino" target="cerebro">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr5b" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="fiin" target="cerebro">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="cerebro" target="strategy">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arr7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="strategy" target="output">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="bt_db-flow" name="bt_db - Historical Backtest">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="bt-title" value="&lt;b&gt;bt_db MODE - Historical Backtest Flow&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="450" y="20" width="400" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Start -->
+        <mxCell id="bt-start" value="&lt;b&gt;START&lt;/b&gt;&#xa;python run.py qpmmt_vn30 --mode bt_db" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="550" y="70" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Config -->
+        <mxCell id="bt-config" value="&lt;b&gt;Load Config&lt;/b&gt;&#xa;CORE_SOURCE = 'bt_db'&#xa;Date: 2022-10-05 to 2024-12-31" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="530" y="160" width="240" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Runner Setup -->
+        <mxCell id="bt-runner" value="&lt;b&gt;BacktestRunner.run()&lt;/b&gt;&#xa;_setup_directories()&#xa;_setup_logging()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="530" y="250" width="240" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Data Load -->
+        <mxCell id="bt-data" value="&lt;b&gt;_load_data()&lt;/b&gt;&#xa;TrinoDailyLoader.load_historical()&#xa;&#xa;Query: daily_ohlcv + price_adjusted&#xa;market_check_price = price_adj_closed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="510" y="340" width="280" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Filter -->
+        <mxCell id="bt-filter" value="&lt;b&gt;_filter_short_tickers()&lt;/b&gt;&#xa;Remove stocks with &lt; max_period bars" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="530" y="460" width="240" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Setup Cerebro -->
+        <mxCell id="bt-cerebro" value="&lt;b&gt;_setup_cerebro()&lt;/b&gt;&#xa;Create bt.Cerebro()&#xa;Add QPMMTStrategy&#xa;Add CSVDataFeed per ticker&#xa;Set initial_cash (10B VND)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="510" y="540" width="280" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Strategy Loop -->
+        <mxCell id="bt-loop" value="&lt;b&gt;Strategy.next() Loop&lt;/b&gt;&#xa;For each bar (2022-10-05 to 2024-12-31)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="530" y="660" width="240" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Decision: Rebalance? -->
+        <mxCell id="bt-rebal" value="&lt;b&gt;should_rebalance()?&lt;/b&gt;&#xa;Friday + 2-week interval" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="540" y="740" width="220" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Yes Branch -->
+        <mxCell id="bt-calc" value="&lt;b&gt;Calculate Scores&lt;/b&gt;&#xa;rs1 = self.inds[d]['rs1'][0]&#xa;(Pre-computed indicators)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="800" y="755" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bt-select" value="&lt;b&gt;Select Portfolio&lt;/b&gt;&#xa;Top 15% by momentum&#xa;Equal-weight allocation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="800" y="835" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bt-orders" value="&lt;b&gt;Generate Orders&lt;/b&gt;&#xa;save_orders() to CSV" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="800" y="915" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Process Orders -->
+        <mxCell id="bt-process" value="&lt;b&gt;Process Pending Orders&lt;/b&gt;&#xa;Execute buy/sell signals" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="530" y="860" width="240" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- End Check -->
+        <mxCell id="bt-end-check" value="&lt;b&gt;End of Date Range?&lt;/b&gt;&#xa;next_date &gt;= 2024-12-31" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="540" y="940" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- End -->
+        <mxCell id="bt-end" value="&lt;b&gt;END&lt;/b&gt;&#xa;cerebro.stop()&#xa;Output: results/*.csv" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="800" y="930" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Loop Back -->
+        <mxCell id="bt-loop-back" value="" style="curved=1;endArrow=classic;html=1;exitX=0;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="bt-end-check" target="bt-loop">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="480" y="975" />
+              <mxPoint x="480" y="685" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bt-no" value="No" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="490" y="955" width="40" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Arrows -->
+        <mxCell id="bt-arr1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bt-start" target="bt-config">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-arr2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bt-config" target="bt-runner">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-arr3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bt-runner" target="bt-data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-arr4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bt-data" target="bt-filter">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-arr5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bt-filter" target="bt-cerebro">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-arr6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bt-cerebro" target="bt-loop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-arr7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bt-loop" target="bt-rebal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-arr8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bt-rebal" target="bt-calc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-yes" value="Yes" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="760" y="760" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-arr9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bt-calc" target="bt-select">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-arr10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bt-select" target="bt-orders">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-arr11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bt-rebal" target="bt-process">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-no2" value="No" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="650" y="820" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-arr12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bt-process" target="bt-end-check">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-arr13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="bt-end-check" target="bt-end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bt-yes2" value="Yes" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="760" y="955" width="40" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="db-flow" name="db - Live Simulation">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="db-title" value="&lt;b&gt;db MODE - Live Simulation Flow&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="450" y="20" width="400" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Start -->
+        <mxCell id="db-start" value="&lt;b&gt;START&lt;/b&gt;&#xa;python run.py qpmmt_vn30 --mode db" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="550" y="70" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Config -->
+        <mxCell id="db-config" value="&lt;b&gt;Load Config&lt;/b&gt;&#xa;CORE_SOURCE = 'db'&#xa;Start: DB_MODE_START_DATE (2025-12-13)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="510" y="160" width="280" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Data Load -->
+        <mxCell id="db-data" value="&lt;b&gt;_load_data()&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="570" y="250" width="160" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Two Data Sources -->
+        <mxCell id="db-trino" value="&lt;b&gt;TrinoDailyLoader&lt;/b&gt;&#xa;Historical OHLCV" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="380" y="320" width="180" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="db-fiin" value="&lt;b&gt;FiinDataLoader&lt;/b&gt;&#xa;get_historical_price_at_time()&#xa;Market check @ 13:55" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="740" y="310" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Merge -->
+        <mxCell id="db-merge" value="&lt;b&gt;Merge Data&lt;/b&gt;&#xa;market_check_price from FiinQuant&#xa;Fallback: price_adj_closed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="510" y="410" width="280" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Strategy Loop -->
+        <mxCell id="db-loop" value="&lt;b&gt;Strategy.next() Loop&lt;/b&gt;&#xa;From DB_MODE_START_DATE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="530" y="500" width="240" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Date Filter -->
+        <mxCell id="db-filter" value="&lt;b&gt;Date Filter&lt;/b&gt;&#xa;current_date &gt;= DB_MODE_START_DATE?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="530" y="580" width="240" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Continuity Check -->
+        <mxCell id="db-cont" value="&lt;b&gt;check_date_continuity()&lt;/b&gt;&#xa;Verify DB state matches current data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="520" y="680" width="260" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Process Previous Trades -->
+        <mxCell id="db-prev" value="&lt;b&gt;process_trades_for_day()&lt;/b&gt;&#xa;Execute pending trades from previous day" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="510" y="760" width="280" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Rebalance Check -->
+        <mxCell id="db-rebal" value="&lt;b&gt;should_rebalance()?&lt;/b&gt;&#xa;Friday + 2-week interval" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="540" y="840" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Yes Branch -->
+        <mxCell id="db-calc" value="&lt;b&gt;Calculate Scores&lt;/b&gt;&#xa;Dynamic calculation&#xa;(temp indicators)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="180" y="755" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="db-orders" value="&lt;b&gt;save_orders()&lt;/b&gt;&#xa;Insert to PostgreSQL&#xa;+ CSV backup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="180" y="840" width="180" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Post Process -->
+        <mxCell id="db-post" value="&lt;b&gt;_post_process()&lt;/b&gt;&#xa;Check: tomorrow == today?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="540" y="940" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- End -->
+        <mxCell id="db-end" value="&lt;b&gt;END&lt;/b&gt;&#xa;process_daily_trades()&#xa;cerebro.stop()" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="800" y="940" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Loop Back -->
+        <mxCell id="db-loop-back" value="" style="curved=1;endArrow=classic;html=1;exitX=0;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="db-post" target="db-loop">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="450" y="975" />
+              <mxPoint x="450" y="525" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Arrows -->
+        <mxCell id="db-arr1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="db-start" target="db-config">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-arr2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="db-config" target="db-data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-arr3a" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="db-data" target="db-trino">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-arr3b" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="db-data" target="db-fiin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-arr4a" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="db-trino" target="db-merge">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-arr4b" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="db-fiin" target="db-merge">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-arr5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="db-merge" target="db-loop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-arr6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="db-loop" target="db-filter">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-arr7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="db-filter" target="db-cont">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-arr8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="db-cont" target="db-prev">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-arr9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="db-prev" target="db-rebal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-arr10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;" edge="1" parent="1" source="db-rebal" target="db-calc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-yes" value="Yes" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="420" y="860" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="db-arr11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="db-calc" target="db-orders">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-arr12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="db-rebal" target="db-post">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-no" value="No" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="655" y="910" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="db-arr13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="db-post" target="db-end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="db-yes2" value="Yes" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="760" y="955" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="db-no2" value="No (continue)" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="450" y="955" width="80" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="fw_db-flow" name="fw_db - Forward Mode">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="fw-title" value="&lt;b&gt;fw_db MODE - Forward/Predictive Mode Flow&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="420" y="20" width="450" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Start -->
+        <mxCell id="fw-start" value="&lt;b&gt;START&lt;/b&gt;&#xa;python run.py qpmmt_vn30 --mode fw_db" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="550" y="70" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Config -->
+        <mxCell id="fw-config" value="&lt;b&gt;Load Config&lt;/b&gt;&#xa;CORE_SOURCE = 'fw_db'&#xa;TARGET_DATE = custom or current" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="510" y="160" width="280" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Data Load -->
+        <mxCell id="fw-data" value="&lt;b&gt;_load_data()&lt;/b&gt;&#xa;Trino + FiinQuant&#xa;&#xa;&lt;b&gt;Price Validation Enabled&lt;/b&gt;&#xa;max_deviation: 7%" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="510" y="250" width="280" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Strategy Loop -->
+        <mxCell id="fw-loop" value="&lt;b&gt;Strategy.next() Loop&lt;/b&gt;&#xa;Filter: current_date &lt;= TARGET_DATE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="530" y="370" width="240" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Key Difference Box -->
+        <mxCell id="fw-diff" value="&lt;b&gt;KEY DIFFERENCES from db mode:&lt;/b&gt;&#xa;&#xa;1. WAIT_FOR_FUTURE = True&#xa;   (Can wait for future data)&#xa;&#xa;2. Price validation (7% max deviation)&#xa;&#xa;3. CLEANUP_MODE = 'selective'&#xa;&#xa;4. No auto-stop condition" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="880" y="300" width="280" height="160" as="geometry" />
+        </mxCell>
+
+        <!-- Continuity & Trades -->
+        <mxCell id="fw-cont" value="&lt;b&gt;For Each Account&lt;/b&gt;&#xa;check_date_continuity()&#xa;process_trades_for_day()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="520" y="450" width="260" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Rebalance -->
+        <mxCell id="fw-rebal" value="&lt;b&gt;should_rebalance()?&lt;/b&gt;&#xa;Friday + 2-week" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="540" y="540" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Yes Branch -->
+        <mxCell id="fw-wait" value="&lt;b&gt;Wait for Future Data&lt;/b&gt;&#xa;(if WAIT_FOR_FUTURE = True)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="180" y="490" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fw-calc" value="&lt;b&gt;Calculate Scores&lt;/b&gt;&#xa;Using temp indicators" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="180" y="560" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fw-orders" value="&lt;b&gt;save_orders()&lt;/b&gt;&#xa;PostgreSQL + CSV" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="180" y="630" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Continue -->
+        <mxCell id="fw-continue" value="&lt;b&gt;Continue Loop&lt;/b&gt;&#xa;(No auto-stop)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="530" y="650" width="240" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Loop Back -->
+        <mxCell id="fw-loop-back" value="" style="curved=1;endArrow=classic;html=1;exitX=1;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="fw-continue" target="fw-loop">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="850" y="675" />
+              <mxPoint x="850" y="395" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Arrows -->
+        <mxCell id="fw-arr1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="fw-start" target="fw-config">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fw-arr2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="fw-config" target="fw-data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fw-arr3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="fw-data" target="fw-loop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fw-arr4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="fw-loop" target="fw-cont">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fw-arr5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="fw-cont" target="fw-rebal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fw-arr6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;" edge="1" parent="1" source="fw-rebal" target="fw-wait">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fw-yes" value="Yes" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="420" y="560" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="fw-arr7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="fw-wait" target="fw-calc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fw-arr8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="fw-calc" target="fw-orders">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fw-arr9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="fw-rebal" target="fw-continue">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fw-no" value="No" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="655" y="610" width="40" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="api-flow" name="api - API Direct Mode">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="api-title" value="&lt;b&gt;api MODE - API Direct Mode Flow&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="450" y="20" width="400" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Start -->
+        <mxCell id="api-start" value="&lt;b&gt;START&lt;/b&gt;&#xa;python run.py qpmmt_vn30 --mode api" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="550" y="70" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Config -->
+        <mxCell id="api-config" value="&lt;b&gt;Load Config&lt;/b&gt;&#xa;CORE_SOURCE = 'api'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="530" y="160" width="240" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Data Load -->
+        <mxCell id="api-data" value="&lt;b&gt;_load_data()&lt;/b&gt;&#xa;Primary: FiinQuant API&#xa;Secondary: Trino (limited historical)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="510" y="240" width="280" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Strategy Loop -->
+        <mxCell id="api-loop" value="&lt;b&gt;Strategy.next() Loop&lt;/b&gt;&#xa;No date filtering (all dates)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="530" y="340" width="240" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Key Difference -->
+        <mxCell id="api-key" value="&lt;b&gt;KEY CHARACTERISTIC:&lt;/b&gt;&#xa;&#xa;should_rebalance()&#xa;ALWAYS returns True&#xa;&#xa;(Rebalances on every next() call)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=center;" vertex="1" parent="1">
+          <mxGeometry x="880" y="280" width="220" height="120" as="geometry" />
+        </mxCell>
+
+        <!-- Rebalance (Always Yes) -->
+        <mxCell id="api-rebal" value="&lt;b&gt;should_rebalance()?&lt;/b&gt;&#xa;ALWAYS True for api mode" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="530" y="420" width="240" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Actions -->
+        <mxCell id="api-calc" value="&lt;b&gt;Calculate Scores&lt;/b&gt;&#xa;From API data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="540" y="520" width="220" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="api-port" value="&lt;b&gt;Build Portfolio&lt;/b&gt;&#xa;Top 15% momentum, equal-weight" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="540" y="590" width="220" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="api-orders" value="&lt;b&gt;Process Orders&lt;/b&gt;&#xa;CSV + PostgreSQL" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="540" y="660" width="220" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Continue -->
+        <mxCell id="api-continue" value="&lt;b&gt;Continue Loop&lt;/b&gt;&#xa;(No auto-stop)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="540" y="730" width="220" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Loop Back -->
+        <mxCell id="api-loop-back" value="" style="curved=1;endArrow=classic;html=1;exitX=1;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="api-continue" target="api-loop">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="830" y="750" />
+              <mxPoint x="830" y="365" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Arrows -->
+        <mxCell id="api-arr1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="api-start" target="api-config">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="api-arr2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="api-config" target="api-data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="api-arr3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="api-data" target="api-loop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="api-arr4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="api-loop" target="api-rebal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="api-arr5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="api-rebal" target="api-calc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="api-always" value="Always Yes" style="text;html=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="650" y="490" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="api-arr6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="api-calc" target="api-port">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="api-arr7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="api-port" target="api-orders">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="api-arr8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="api-orders" target="api-continue">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="comparison" name="Mode Comparison Table">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="comp-title" value="&lt;b&gt;MODE COMPARISON TABLE&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="500" y="20" width="400" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Table Header -->
+        <mxCell id="header" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="100" y="70" width="1200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="h1" value="&lt;b&gt;&lt;font color=&quot;#ffffff&quot;&gt;Setting&lt;/font&gt;&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="100" y="80" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="h2" value="&lt;b&gt;&lt;font color=&quot;#ffffff&quot;&gt;bt_db&lt;/font&gt;&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="250" y="80" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="h3" value="&lt;b&gt;&lt;font color=&quot;#ffffff&quot;&gt;db&lt;/font&gt;&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="450" y="80" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="h4" value="&lt;b&gt;&lt;font color=&quot;#ffffff&quot;&gt;fw_db&lt;/font&gt;&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="650" y="80" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="h5" value="&lt;b&gt;&lt;font color=&quot;#ffffff&quot;&gt;api&lt;/font&gt;&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="850" y="80" width="200" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Row 1: Purpose -->
+        <mxCell id="r1" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;" vertex="1" parent="1">
+          <mxGeometry x="100" y="110" width="1200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="r1c1" value="&lt;b&gt;Purpose&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="120" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r1c2" value="Historical Backtest" style="text;html=1;strokeColor=none;fillColor=#dae8fc;align=center;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="270" y="120" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r1c3" value="Live Simulation" style="text;html=1;strokeColor=none;fillColor=#d5e8d4;align=center;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="470" y="120" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r1c4" value="Forward/Predictive" style="text;html=1;strokeColor=none;fillColor=#fff2cc;align=center;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="670" y="120" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r1c5" value="API Direct" style="text;html=1;strokeColor=none;fillColor=#f8cecc;align=center;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="870" y="120" width="160" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Row 2: Data Source -->
+        <mxCell id="r2" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="100" y="150" width="1200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="r2c1" value="&lt;b&gt;Data Source&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="160" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r2c2" value="Trino only" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="270" y="160" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r2c3" value="Trino + FiinQuant" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="470" y="160" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r2c4" value="Trino + FiinQuant" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="670" y="160" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r2c5" value="FiinQuant primary" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="870" y="160" width="160" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Row 3: Date Range -->
+        <mxCell id="r3" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;" vertex="1" parent="1">
+          <mxGeometry x="100" y="190" width="1200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="r3c1" value="&lt;b&gt;Date Range&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="200" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r3c2" value="2022-10-05 to 2024-12-31" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="250" y="200" width="200" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r3c3" value="From 2025-12-13" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="470" y="200" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r3c4" value="Custom TARGET_DATE" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="670" y="200" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r3c5" value="N/A" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="870" y="200" width="160" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Row 4: Rebalance -->
+        <mxCell id="r4" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="100" y="230" width="1200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="r4c1" value="&lt;b&gt;Rebalance&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="240" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r4c2" value="Friday, 2-week" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="270" y="240" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r4c3" value="Friday, 2-week" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="470" y="240" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r4c4" value="Friday, 2-week" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="670" y="240" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r4c5" value="&lt;b&gt;ALWAYS&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=#f8cecc;align=center;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="870" y="240" width="160" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Row 5: Indicator Calc -->
+        <mxCell id="r5" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;" vertex="1" parent="1">
+          <mxGeometry x="100" y="270" width="1200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="r5c1" value="&lt;b&gt;Indicator Calc&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="280" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r5c2" value="Pre-computed" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="270" y="280" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r5c3" value="Dynamic (temp)" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="470" y="280" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r5c4" value="Dynamic (temp)" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="670" y="280" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r5c5" value="Dynamic (temp)" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="870" y="280" width="160" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Row 6: Order Storage -->
+        <mxCell id="r6" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="100" y="310" width="1200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="r6c1" value="&lt;b&gt;Order Storage&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="320" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r6c2" value="CSV only" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="270" y="320" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r6c3" value="CSV + PostgreSQL" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="470" y="320" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r6c4" value="CSV + PostgreSQL" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="670" y="320" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r6c5" value="CSV + PostgreSQL" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="870" y="320" width="160" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Row 7: Auto-Stop -->
+        <mxCell id="r7" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;" vertex="1" parent="1">
+          <mxGeometry x="100" y="350" width="1200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="r7c1" value="&lt;b&gt;Auto-Stop&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="360" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r7c2" value="At end date" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="270" y="360" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r7c3" value="tomorrow = today" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="470" y="360" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r7c4" value="No" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="670" y="360" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r7c5" value="No" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="870" y="360" width="160" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Row 8: Price Validation -->
+        <mxCell id="r8" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="100" y="390" width="1200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="r8c1" value="&lt;b&gt;Price Validation&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="400" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r8c2" value="No" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="270" y="400" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r8c3" value="No" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="470" y="400" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r8c4" value="&lt;b&gt;Yes (7% max)&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=#fff2cc;align=center;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="670" y="400" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r8c5" value="No" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="870" y="400" width="160" height="20" as="geometry" />
+        </mxCell>
+
+        <!-- Row 9: Market Check -->
+        <mxCell id="r9" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;" vertex="1" parent="1">
+          <mxGeometry x="100" y="430" width="1200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="r9c1" value="&lt;b&gt;Market Check Price&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="100" y="440" width="150" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r9c2" value="price_adj_closed" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="270" y="440" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r9c3" value="FiinQuant @ 13:55" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="470" y="440" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r9c4" value="FiinQuant API" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="670" y="440" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="r9c5" value="API snapshot" style="text;html=1;strokeColor=none;fillColor=none;align=center;" vertex="1" parent="1">
+          <mxGeometry x="870" y="440" width="160" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

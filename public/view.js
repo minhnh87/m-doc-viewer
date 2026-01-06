@@ -6,6 +6,90 @@ if (!currentFilePath) {
   document.getElementById('loading').innerHTML = '❌ No file specified.';
 }
 
+// SVG Icons
+const TRASH_ICON = `<svg viewBox="0 0 16 16"><path d="M6.5 1.75a.25.25 0 01.25-.25h2.5a.25.25 0 01.25.25V3h-3V1.75zm4.5 0V3h2.25a.75.75 0 010 1.5H2.75a.75.75 0 010-1.5H5V1.75C5 .784 5.784 0 6.75 0h2.5C10.216 0 11 .784 11 1.75zM4.496 6.675a.75.75 0 10-1.492.15l.66 6.6A1.75 1.75 0 005.405 15h5.19c.9 0 1.652-.681 1.741-1.576l.66-6.6a.75.75 0 00-1.492-.149l-.66 6.6a.25.25 0 01-.249.225h-5.19a.25.25 0 01-.249-.225l-.66-6.6z"></path></svg>`;
+const WARNING_ICON = `<svg viewBox="0 0 16 16"><path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0114.082 15H1.918a1.75 1.75 0 01-1.543-2.575zM8 5a.75.75 0 00-.75.75v2.5a.75.75 0 001.5 0v-2.5A.75.75 0 008 5zm1 6a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>`;
+
+// Delete state
+let deleteTarget = null; // { type: 'file' | 'folder', path: string, name: string }
+
+// Create confirm dialog HTML
+function createConfirmDialog() {
+  const dialog = document.createElement('div');
+  dialog.className = 'confirm-overlay';
+  dialog.id = 'confirm-dialog';
+  dialog.innerHTML = `
+    <div class="confirm-dialog">
+      <div class="confirm-header">
+        ${WARNING_ICON}
+        <h3>Xác nhận xóa</h3>
+      </div>
+      <div class="confirm-body">
+        <p>Bạn có chắc muốn xóa <span class="item-name" id="delete-item-name"></span>?</p>
+      </div>
+      <div class="confirm-actions">
+        <button class="confirm-btn confirm-btn-cancel" id="cancel-delete">Hủy</button>
+        <button class="confirm-btn confirm-btn-delete" id="confirm-delete">Xóa</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(dialog);
+
+  // Event listeners
+  document.getElementById('cancel-delete').addEventListener('click', hideConfirmDialog);
+  document.getElementById('confirm-delete').addEventListener('click', executeDelete);
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) hideConfirmDialog();
+  });
+}
+
+function showConfirmDialog(type, path, name) {
+  deleteTarget = { type, path, name };
+  const typeLabel = type === 'folder' ? 'thư mục' : 'file';
+  document.getElementById('delete-item-name').textContent = `${typeLabel} "${name}"`;
+  document.getElementById('confirm-dialog').classList.add('show');
+}
+
+function hideConfirmDialog() {
+  document.getElementById('confirm-dialog').classList.remove('show');
+  deleteTarget = null;
+}
+
+async function executeDelete() {
+  if (!deleteTarget) return;
+
+  const { type, path } = deleteTarget;
+  const endpoint = type === 'folder' ? '/api/folder' : '/api/file';
+
+  try {
+    const response = await fetch(`${endpoint}?path=${encodeURIComponent(path)}`, {
+      method: 'DELETE'
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to delete');
+    }
+
+    // Success - refresh file tree
+    hideConfirmDialog();
+    loadFileTree();
+
+    // If deleted current file, redirect to home
+    if (type === 'file' && path === currentFilePath) {
+      window.location.href = '/';
+    }
+  } catch (error) {
+    console.error('Delete error:', error);
+    alert('Lỗi: ' + error.message);
+    hideConfirmDialog();
+  }
+}
+
+// Initialize confirm dialog
+createConfirmDialog();
+
 // Load file tree
 async function loadFileTree() {
   try {
@@ -31,7 +115,7 @@ async function loadFileTree() {
 
       html += `
         <div class="tree-folder ${isExpanded ? 'expanded' : ''}">
-          <div class="tree-folder-header" data-folder="${folderId}">
+          <div class="tree-folder-header" data-folder="${folderId}" data-folder-path="${folder === 'Root' ? '' : folder}">
             <svg class="tree-icon folder-icon" viewBox="0 0 16 16" width="16" height="16">
               <path d="M1.75 1A1.75 1.75 0 000 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0016 13.25v-8.5A1.75 1.75 0 0014.25 3H7.5a.25.25 0 01-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1H1.75z"></path>
             </svg>
@@ -39,6 +123,7 @@ async function loadFileTree() {
               <path d="M12.78 5.22a.749.749 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.06 0L3.22 6.28a.749.749 0 1 1 1.06-1.06L8 8.939l3.72-3.719a.749.749 0 0 1 1.06 0z"></path>
             </svg>
             <span class="tree-folder-name">${folder}</span>
+            ${folder !== 'Root' ? `<button class="delete-btn" data-delete-type="folder" data-delete-path="${folder}" data-delete-name="${folder}" title="Xóa thư mục">${TRASH_ICON}</button>` : ''}
           </div>
           <div class="tree-folder-content" id="${folderId}">
       `;
@@ -49,14 +134,15 @@ async function loadFileTree() {
       for (const file of folderFiles) {
         const isActive = file.path === currentFilePath;
         html += `
-          <a href="index.html?path=${encodeURIComponent(file.path)}"
-             class="tree-file ${isActive ? 'active' : ''}"
-             data-path="${file.path}">
-            <svg class="tree-icon file-icon" viewBox="0 0 16 16" width="16" height="16">
-              <path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0113.25 16h-9.5A1.75 1.75 0 012 14.25V1.75zm1.75-.25a.25.25 0 00-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 00.25-.25V6h-2.75A1.75 1.75 0 019 4.25V1.5H3.75a.25.25 0 00-.25.25z"></path>
-            </svg>
-            <span class="tree-file-name">${file.name}</span>
-          </a>
+          <div class="tree-file ${isActive ? 'active' : ''}" data-path="${file.path}">
+            <a href="index.html?path=${encodeURIComponent(file.path)}" class="tree-file-link">
+              <svg class="tree-icon file-icon" viewBox="0 0 16 16" width="16" height="16">
+                <path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0113.25 16h-9.5A1.75 1.75 0 012 14.25V1.75zm1.75-.25a.25.25 0 00-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 00.25-.25V6h-2.75A1.75 1.75 0 019 4.25V1.5H3.75a.25.25 0 00-.25.25z"></path>
+              </svg>
+              <span class="tree-file-name">${file.name}</span>
+            </a>
+            <button class="delete-btn" data-delete-type="file" data-delete-path="${file.path}" data-delete-name="${file.name}" title="Xóa file">${TRASH_ICON}</button>
+          </div>
         `;
       }
 
@@ -71,9 +157,24 @@ async function loadFileTree() {
     // Add folder toggle functionality
     const folderHeaders = fileTreeNav.querySelectorAll('.tree-folder-header');
     folderHeaders.forEach(header => {
-      header.addEventListener('click', () => {
+      header.addEventListener('click', (e) => {
+        // Don't toggle if clicking delete button
+        if (e.target.closest('.delete-btn')) return;
         const folder = header.parentElement;
         folder.classList.toggle('expanded');
+      });
+    });
+
+    // Add delete button handlers
+    const deleteButtons = fileTreeNav.querySelectorAll('.delete-btn');
+    deleteButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const type = btn.dataset.deleteType;
+        const path = btn.dataset.deletePath;
+        const name = btn.dataset.deleteName;
+        showConfirmDialog(type, path, name);
       });
     });
 

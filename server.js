@@ -6,7 +6,8 @@ const { marked } = require('marked');
 const app = express();
 const PORT = 3001;
 
-// Serve static files from the 'public' directory
+// Middleware
+app.use(express.json());
 app.use(express.static('public'));
 
 // Directories to exclude from scanning
@@ -88,6 +89,99 @@ app.get('/api/file', (req, res) => {
     });
   } catch (error) {
     res.status(404).json({ error: 'File not found' });
+  }
+});
+
+// Helper function to validate path is within project directory
+function isPathSafe(filePath) {
+  const fullPath = path.resolve(__dirname, filePath);
+  const projectRoot = path.resolve(__dirname);
+
+  // Must be within project directory
+  if (!fullPath.startsWith(projectRoot + path.sep)) {
+    return false;
+  }
+
+  // Cannot delete from excluded directories or the project root itself
+  const relativePath = path.relative(projectRoot, fullPath);
+  const firstDir = relativePath.split(path.sep)[0];
+
+  if (EXCLUDED_DIRS.includes(firstDir) || relativePath === '') {
+    return false;
+  }
+
+  return true;
+}
+
+// API endpoint to delete a file
+app.delete('/api/file', (req, res) => {
+  const filePath = req.query.path;
+
+  if (!filePath) {
+    return res.status(400).json({ error: 'File path is required' });
+  }
+
+  if (!isPathSafe(filePath)) {
+    return res.status(403).json({ error: 'Access denied: Cannot delete this file' });
+  }
+
+  const fullPath = path.join(__dirname, filePath);
+
+  try {
+    // Check if file exists
+    if (!fs.existsSync(fullPath)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    // Check if it's actually a file
+    const stats = fs.statSync(fullPath);
+    if (!stats.isFile()) {
+      return res.status(400).json({ error: 'Path is not a file' });
+    }
+
+    // Delete the file
+    fs.unlinkSync(fullPath);
+
+    res.json({ success: true, message: 'File deleted successfully', path: filePath });
+  } catch (error) {
+    console.error('Error deleting file:', error);
+    res.status(500).json({ error: 'Failed to delete file' });
+  }
+});
+
+// API endpoint to delete a folder
+app.delete('/api/folder', (req, res) => {
+  const folderPath = req.query.path;
+
+  if (!folderPath) {
+    return res.status(400).json({ error: 'Folder path is required' });
+  }
+
+  if (!isPathSafe(folderPath)) {
+    return res.status(403).json({ error: 'Access denied: Cannot delete this folder' });
+  }
+
+  const fullPath = path.join(__dirname, folderPath);
+
+  try {
+    // Check if folder exists
+    if (!fs.existsSync(fullPath)) {
+      return res.status(404).json({ error: 'Folder not found' });
+    }
+
+    // Check if it's actually a directory
+    const stats = fs.statSync(fullPath);
+    if (!stats.isDirectory()) {
+      return res.status(400).json({ error: 'Path is not a folder' });
+    }
+
+    // Delete the folder recursively
+    fs.rmSync(fullPath, { recursive: true });
+
+    res.json({ success: true, message: 'Folder deleted successfully', path: folderPath });
+  } catch (error) {
+    console.error('Error deleting folder:', error);
+    res.status(500).json({ error: 'Failed to delete folder' });
   }
 });
 

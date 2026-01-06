@@ -110,6 +110,15 @@ body {
   height: 40px;
 }
 
+.logo-link {
+  display: flex;
+  transition: transform 0.15s ease;
+}
+
+.logo-link:hover {
+  transform: scale(1.1);
+}
+
 .close-sidebar {
   display: none;
   background: none;
@@ -190,21 +199,35 @@ body {
 .tree-file {
   display: flex;
   align-items: center;
+  position: relative;
+  transition: all 0.1s ease;
+}
+
+.tree-file-link {
+  display: flex;
+  align-items: center;
   gap: 8px;
-  padding: 8px 20px 8px 44px;
+  padding: 8px 40px 8px 44px;
   text-decoration: none;
   color: var(--text-secondary);
   font-size: 13px;
-  transition: all 0.1s ease;
+  flex: 1;
+  min-width: 0;
 }
 
 .tree-file:hover {
   background: var(--bg-tertiary);
+}
+
+.tree-file:hover .tree-file-link {
   color: var(--text-primary);
 }
 
 .tree-file.active {
   background: var(--bg-tertiary);
+}
+
+.tree-file.active .tree-file-link {
   color: blue;
   font-weight: 500;
 }
@@ -806,5 +829,171 @@ header h1 {
   padding: 80px 20px;
   color: var(--text-tertiary);
   font-size: 15px;
+}
+
+/* ========================================
+   DELETE BUTTON - Hover to reveal
+   ======================================== */
+
+.delete-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.15s ease;
+  z-index: 5;
+}
+
+.delete-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: #cf222e;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.delete-btn:hover {
+  background: rgba(207, 34, 46, 0.1);
+}
+
+.delete-btn:hover svg {
+  opacity: 1;
+}
+
+/* Show delete button on hover */
+.tree-folder-header {
+  position: relative;
+}
+
+.tree-folder-header:hover .delete-btn,
+.tree-file:hover .delete-btn {
+  opacity: 1;
+}
+
+/* ========================================
+   CONFIRM DIALOG
+   ======================================== */
+
+.confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+}
+
+.confirm-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.confirm-dialog {
+  background: var(--bg-primary);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 90%;
+  transform: scale(0.95);
+  transition: transform 0.2s ease;
+}
+
+.confirm-overlay.show .confirm-dialog {
+  transform: scale(1);
+}
+
+.confirm-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 20px 0;
+}
+
+.confirm-header svg {
+  width: 24px;
+  height: 24px;
+  fill: #cf222e;
+  flex-shrink: 0;
+}
+
+.confirm-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.confirm-body {
+  padding: 12px 20px 20px;
+}
+
+.confirm-body p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.confirm-body .item-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-secondary);
+  background: var(--bg-secondary);
+  border-radius: 0 0 8px 8px;
+}
+
+.confirm-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.confirm-btn-cancel {
+  background: var(--bg-primary);
+  border-color: var(--border-primary);
+  color: var(--text-secondary);
+}
+
+.confirm-btn-cancel:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.confirm-btn-delete {
+  background: #cf222e;
+  color: white;
+}
+
+.confirm-btn-delete:hover {
+  background: #a40e26;
 }
 
