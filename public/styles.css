@@ -30,7 +30,7 @@
 
   /* Spacing */
   --header-height: 0px;
-  --sidebar-width: 260px;
+  --sidebar-width: 330px;
 }
 
 /* Reset */
@@ -832,52 +832,13 @@ header h1 {
 }
 
 /* ========================================
-   DELETE BUTTON - Hover to reveal
+   ACTION BUTTONS in File Tree - Hover to reveal
+   (Styles moved to end of file under "HEADER ACTIONS")
    ======================================== */
 
-.delete-btn {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  opacity: 0;
-  transition: all 0.15s ease;
-  z-index: 5;
-}
-
-.delete-btn svg {
-  width: 14px;
-  height: 14px;
-  fill: #cf222e;
-  opacity: 0.6;
-  transition: opacity 0.15s ease;
-}
-
-.delete-btn:hover {
-  background: rgba(207, 34, 46, 0.1);
-}
-
-.delete-btn:hover svg {
-  opacity: 1;
-}
-
-/* Show delete button on hover */
+/* Position context for action buttons */
 .tree-folder-header {
   position: relative;
-}
-
-.tree-folder-header:hover .delete-btn,
-.tree-file:hover .delete-btn {
-  opacity: 1;
 }
 
 /* ========================================
@@ -995,5 +956,240 @@ header h1 {
 
 .confirm-btn-delete:hover {
   background: #a40e26;
+}
+
+/* ========================================
+   INPUT DIALOG
+   ======================================== */
+
+.input-dialog-field {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.input-dialog-field:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+}
+
+.confirm-btn-ok {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.confirm-btn-ok:hover {
+  background: var(--accent-hover);
+}
+
+/* ========================================
+   MOVE DIALOG
+   ======================================== */
+
+.move-dialog .confirm-body {
+  padding: 12px 20px 16px;
+}
+
+.folder-list {
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid var(--border-secondary);
+  border-radius: 6px;
+  margin-top: 12px;
+}
+
+.folder-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.folder-option:last-child {
+  border-bottom: none;
+}
+
+.folder-option:hover {
+  background: var(--bg-tertiary);
+}
+
+.folder-option svg {
+  width: 16px;
+  height: 16px;
+  fill: var(--text-tertiary);
+}
+
+.folder-option span {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.no-folders {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+/* ========================================
+   HEADER ACTIONS (Create folder button)
+   ======================================== */
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--bg-hover);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.action-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: var(--text-tertiary);
+  transition: fill 0.15s ease;
+}
+
+.action-btn:hover {
+  background: var(--bg-hover);
+}
+
+.action-btn:hover svg {
+  fill: var(--text-primary);
+}
+
+/* File tree action buttons */
+.tree-folder-header .action-btn,
+.tree-file .action-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 5;
+}
+
+.tree-folder-header:hover .action-btn,
+.tree-file:hover .action-btn {
+  opacity: 1;
+}
+
+/* Position action buttons */
+.tree-folder-header .rename-btn {
+  right: 40px;
+}
+
+.tree-folder-header .delete-btn {
+  right: 12px;
+}
+
+.tree-file .rename-btn {
+  right: 68px;
+}
+
+.tree-file .move-btn {
+  right: 40px;
+}
+
+.tree-file .delete-btn {
+  right: 12px;
+}
+
+/* Delete button special color */
+.action-btn.delete-btn svg {
+  fill: #cf222e;
+}
+
+.action-btn.delete-btn:hover {
+  background: rgba(207, 34, 46, 0.15);
+}
+
+.action-btn.delete-btn:hover svg {
+  fill: #cf222e;
+}
+
+/* ========================================
+   EXTERNAL FOLDERS
+   ======================================== */
+
+.external-folder {
+  border-bottom: 1px dashed var(--border-secondary);
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+}
+
+.external-folder-header {
+  background: linear-gradient(90deg, rgba(9, 105, 218, 0.05) 0%, transparent 100%);
+}
+
+.external-folder-header .folder-icon {
+  fill: var(--accent-primary);
+}
+
+.external-folder-header .tree-folder-name {
+  color: var(--accent-primary);
+  font-size: 12px;
+}
+
+.external-folder-header .remove-external-btn {
+  right: 12px;
+}
+
+.remove-external-btn svg {
+  fill: var(--text-tertiary);
+}
+
+.remove-external-btn:hover svg {
+  fill: #cf222e;
+}
+
+/* ========================================
+   ADD FOLDER DIALOG
+   ======================================== */
+
+.add-folder-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+/* ========================================
+   QUICK BUTTONS
+   ======================================== */
+
+.quick-btn {
+  background: var(--accent-light);
+  border: 1px solid var(--accent-primary);
+}
+
+.quick-btn svg {
+  fill: var(--accent-primary);
+}
+
+.quick-btn:hover {
+  background: var(--accent-primary);
+}
+
+.quick-btn:hover svg {
+  fill: white;
 }
 

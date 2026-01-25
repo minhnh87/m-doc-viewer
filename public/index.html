@@ -6,6 +6,13 @@
   <title>Markdown Viewer</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="styles.css">
+  <!-- Draw.io Viewer -->
+  <script src="https://viewer.diagrams.net/js/viewer-static.min.js" defer></script>
+  <!-- Mermaid.js -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({ startOnLoad: false, theme: 'default' });
+  </script>
 </head>
 <body>
   <div class="viewer-container">
@@ -24,7 +31,24 @@
       <aside class="file-tree-sidebar">
         <div class="file-tree-header">
           <h3><a href="?path=last_talk.md" class="logo-link"><img src="favicon.svg" alt="Logo" class="header-logo"></a> Files</h3>
-          <button id="close-file-tree" class="close-sidebar">✕</button>
+          <div class="header-actions">
+            <button id="quick-last-talk-btn" class="action-btn quick-btn" title="Last Talk">
+              <svg viewBox="0 0 16 16"><path d="M0 2.75C0 1.784.784 1 1.75 1h12.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0114.25 15H1.75A1.75 1.75 0 010 13.25V2.75zm1.75-.25a.25.25 0 00-.25.25v10.5c0 .138.112.25.25.25h12.5a.25.25 0 00.25-.25V2.75a.25.25 0 00-.25-.25H1.75zM3.5 6.25a.75.75 0 01.75-.75h7a.75.75 0 010 1.5h-7a.75.75 0 01-.75-.75zm.75 2.25a.75.75 0 000 1.5h4a.75.75 0 000-1.5h-4z"></path></svg>
+            </button>
+            <button id="quick-latest-plan-btn" class="action-btn quick-btn" title="Latest Plan">
+              <svg viewBox="0 0 16 16"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0113.25 16h-9.5A1.75 1.75 0 012 14.25V1.75zm1.75-.25a.25.25 0 00-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 00.25-.25V4.664a.25.25 0 00-.073-.177l-2.914-2.914a.25.25 0 00-.177-.073H3.75a.25.25 0 00-.25.25zM8 6.5a.75.75 0 01.75.75v1.5h1.5a.75.75 0 010 1.5h-1.5v1.5a.75.75 0 01-1.5 0v-1.5h-1.5a.75.75 0 010-1.5h1.5v-1.5A.75.75 0 018 6.5z"></path></svg>
+            </button>
+            <button id="create-folder-btn" class="action-btn" title="Tạo thư mục mới">
+              <svg viewBox="0 0 16 16"><path d="M7.75 2a.75.75 0 01.75.75V7h4.25a.75.75 0 010 1.5H8.5v4.25a.75.75 0 01-1.5 0V8.5H2.75a.75.75 0 010-1.5H7V2.75A.75.75 0 017.75 2z"></path></svg>
+            </button>
+            <button id="add-external-folder-btn" class="action-btn" title="Thêm folder ngoài">
+              <svg viewBox="0 0 16 16"><path d="M4.75 7.25a.75.75 0 000 1.5h3.69l-1.22 1.22a.75.75 0 101.06 1.06l2.5-2.5a.75.75 0 000-1.06l-2.5-2.5a.75.75 0 10-1.06 1.06l1.22 1.22H4.75z"></path><path d="M1.5 4.25c0-.966.784-1.75 1.75-1.75h3.5a.75.75 0 010 1.5h-3.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-3.5a.75.75 0 011.5 0v3.5A1.75 1.75 0 0110.75 13h-7.5A1.75 1.75 0 011.5 11.75v-7.5z"></path></svg>
+            </button>
+            <button id="export-html-btn" class="action-btn" title="Export HTML">
+              <svg viewBox="0 0 16 16"><path d="M7.47 10.78a.75.75 0 001.06 0l3.75-3.75a.75.75 0 00-1.06-1.06L8.75 8.44V1.75a.75.75 0 00-1.5 0v6.69L4.78 5.97a.75.75 0 00-1.06 1.06l3.75 3.75zM3.75 13a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5z"></path></svg>
+            </button>
+            <button id="close-file-tree" class="close-sidebar">✕</button>
+          </div>
         </div>
         <nav id="file-tree" class="file-tree">
           <div class="loading-tree">Loading files...</div>
