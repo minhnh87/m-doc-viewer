@@ -1,2 +1,16 @@
+# Ignore everything
+*
+
+# Except these files/folders
+!.gitignore
+!.claude/
+!.claude/**
+!public/
+!public/**
+!server.js
+!package.json
+!package-lock.json
+
+# Always ignore
 node_modules/
 .DS_Store
