@@ -1068,10 +1068,12 @@ document.getElementById('quick-latest-plan-btn').addEventListener('click', async
   }
 });
 
-// Load file tree and content when page loads
-loadFileTree();
+// Load content and setup keyboard navigation
 loadContent();
 setupKeyboardNavigation();
+
+// Note: loadFileTree() will be called conditionally after search state is checked
+// See end of file for restoreSearchState() logic
 
 // ========================================
 // EXPORT TO STATIC HTML
@@ -1336,3 +1338,318 @@ ${scrollSpyJS}
 
 // Export button handler
 document.getElementById('export-html-btn').addEventListener('click', exportToStaticHTML);
+
+// ========================================
+// SEARCH FUNCTIONALITY
+// ========================================
+
+const searchInput = document.getElementById('search-input');
+const clearSearchBtn = document.getElementById('clear-search-btn');
+const searchPanel = document.getElementById('search-panel');
+const toggleSearchBtn = document.getElementById('toggle-search-btn');
+let isSearchMode = false;
+let lastSearchData = null; // Store last search results
+let lastSearchQuery = null;
+let lastSearchScope = null;
+
+// Get current folder from file path
+function getCurrentFolder() {
+  if (!currentFilePath) return null;
+
+  if (isExternalFile) {
+    // For external files, get the directory part
+    const lastSlash = currentFilePath.lastIndexOf('/');
+    return lastSlash > 0 ? currentFilePath.substring(0, lastSlash) : currentFilePath;
+  } else {
+    // For project files, get the folder from path
+    const lastSlash = currentFilePath.lastIndexOf('/');
+    return lastSlash > 0 ? currentFilePath.substring(0, lastSlash) : '';
+  }
+}
+
+// Get selected search scope
+function getSearchScope() {
+  const selected = document.querySelector('input[name="search-scope"]:checked');
+  return selected ? selected.value : 'folder';
+}
+
+// Perform search
+async function performSearch(query) {
+  if (!query.trim()) {
+    clearSearch();
+    return;
+  }
+
+  const scope = getSearchScope();
+  const folder = getCurrentFolder();
+
+  // For folder scope, we need a valid folder
+  if (scope === 'folder' && folder === null && !currentFilePath) {
+    alert('Vui lòng mở một file trước khi tìm kiếm');
+    return;
+  }
+
+  try {
+    let url;
+
+    if (scope === 'all') {
+      // Search in all folders (project + external)
+      const externalFolders = getExternalFolders();
+      url = `/api/search?query=${encodeURIComponent(query)}&scope=all&externalFolders=${encodeURIComponent(JSON.stringify(externalFolders))}`;
+    } else {
+      // Search in current folder only
+      const externalParam = isExternalFile ? '&external=true' : '';
+      const folderParam = folder !== null ? folder : '';
+      url = `/api/search?query=${encodeURIComponent(query)}&folder=${encodeURIComponent(folderParam)}${externalParam}&scope=folder`;
+    }
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Search failed');
+    }
+
+    // Store search state
+    lastSearchData = data;
+    lastSearchQuery = query;
+    lastSearchScope = scope;
+
+    // Save to sessionStorage for persistence across navigation
+    sessionStorage.setItem('searchState', JSON.stringify({
+      query: query,
+      scope: scope,
+      data: data
+    }));
+
+    renderSearchResults(data, query, scope);
+    isSearchMode = true;
+    clearSearchBtn.classList.add('visible');
+
+  } catch (error) {
+    console.error('Search error:', error);
+    alert('Lỗi tìm kiếm: ' + error.message);
+  }
+}
+
+// Render search results
+function renderSearchResults(data, query, scope = 'folder') {
+  const fileTreeNav = document.getElementById('file-tree');
+  const folder = getCurrentFolder();
+  const folderDisplay = isExternalFile ? folder.split('/').pop() : (folder || 'Root');
+  const scopeLabel = scope === 'all' ? 'tất cả' : folderDisplay;
+
+  if (data.results.length === 0) {
+    fileTreeNav.innerHTML = `
+      <div class="search-results">
+        <div class="search-results-header">
+          Tìm "${query}" trong ${scopeLabel}
+        </div>
+        <div class="search-no-results">Không tìm thấy kết quả</div>
+      </div>
+    `;
+    return;
+  }
+
+  let html = `
+    <div class="search-results">
+      <div class="search-results-header">
+        Tìm thấy ${data.totalMatches} kết quả trong ${data.totalFiles} file (${scopeLabel})
+      </div>
+  `;
+
+  for (const result of data.results) {
+    const file = result.file;
+    const fileIcon = getFileIcon(file.name);
+    const externalParam = file.isExternal ? '&external=true' : '';
+
+    // For scope=all, show folder info
+    let folderInfo = '';
+    if (scope === 'all') {
+      if (file.isExternal) {
+        // Show last part of external path
+        const parts = file.path.split('/');
+        parts.pop(); // Remove filename
+        const folderName = parts.pop() || 'External';
+        folderInfo = `<span class="search-result-folder">${folderName}/</span>`;
+      } else {
+        // Show project folder
+        const fileParts = file.path.split('/');
+        if (fileParts.length > 1) {
+          fileParts.pop(); // Remove filename
+          folderInfo = `<span class="search-result-folder">${fileParts.join('/')}/</span>`;
+        } else {
+          folderInfo = `<span class="search-result-folder">Root/</span>`;
+        }
+      }
+    }
+
+    html += `
+      <div class="search-result-item">
+        <div class="search-result-file" data-path="${file.path}" data-external="${file.isExternal}">
+          ${fileIcon}
+          <span>${folderInfo}${file.name}</span>
+        </div>
+        <div class="search-result-matches">
+    `;
+
+    for (const match of result.matches) {
+      // Highlight the search term in the content
+      const highlightedContent = highlightMatch(match.content, query);
+      html += `
+        <a href="index.html?path=${encodeURIComponent(file.path)}${externalParam}" class="search-match-line" data-path="${file.path}" data-external="${file.isExternal}">
+          <span class="line-number">${match.line}:</span>${highlightedContent}
+        </a>
+      `;
+    }
+
+    html += `
+        </div>
+      </div>
+    `;
+  }
+
+  html += '</div>';
+  fileTreeNav.innerHTML = html;
+
+  // Add click handlers for file headers
+  const fileHeaders = fileTreeNav.querySelectorAll('.search-result-file');
+  fileHeaders.forEach(header => {
+    header.addEventListener('click', () => {
+      const path = header.dataset.path;
+      const isExternal = header.dataset.external === 'true';
+      const externalParam = isExternal ? '&external=true' : '';
+      window.location.href = `index.html?path=${encodeURIComponent(path)}${externalParam}`;
+    });
+  });
+}
+
+// Highlight search term in text
+function highlightMatch(text, query) {
+  const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+  return text.replace(regex, '<span class="search-match-highlight">$1</span>');
+}
+
+// Escape special regex characters
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Clear search and restore file tree
+function clearSearch() {
+  searchInput.value = '';
+  clearSearchBtn.classList.remove('visible');
+  isSearchMode = false;
+  lastSearchData = null;
+  lastSearchQuery = null;
+  lastSearchScope = null;
+  sessionStorage.removeItem('searchState');
+  loadFileTree();
+}
+
+// Toggle search panel visibility
+function toggleSearchPanel() {
+  const isVisible = searchPanel.style.display !== 'none';
+  searchPanel.style.display = isVisible ? 'none' : 'block';
+  if (!isVisible) {
+    searchInput.focus();
+  }
+}
+
+// Search input event handlers
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    performSearch(searchInput.value);
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    if (isSearchMode) {
+      clearSearch();
+    } else {
+      searchInput.blur();
+    }
+  }
+});
+
+searchInput.addEventListener('input', () => {
+  if (searchInput.value) {
+    clearSearchBtn.classList.add('visible');
+  } else {
+    clearSearchBtn.classList.remove('visible');
+    if (isSearchMode) {
+      clearSearch();
+    }
+  }
+});
+
+clearSearchBtn.addEventListener('click', () => {
+  clearSearch();
+  searchInput.focus();
+});
+
+// Toggle search panel
+toggleSearchBtn.addEventListener('click', () => {
+  toggleSearchPanel();
+});
+
+// Hotkeys
+document.addEventListener('keydown', (e) => {
+  // Ignore if typing in input/textarea
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+    return;
+  }
+
+  if (e.key === 'f' || e.key === 'F') {
+    // F => open search form, focus input
+    e.preventDefault();
+    searchPanel.style.display = 'block';
+    searchInput.focus();
+  } else if (e.key === 'l' || e.key === 'L') {
+    // L => open last_talk.md
+    e.preventDefault();
+    window.location.href = 'index.html?path=last_talk.md';
+  }
+});
+
+// ========================================
+// RESTORE SEARCH STATE ON PAGE LOAD
+// ========================================
+
+function restoreSearchState() {
+  const savedState = sessionStorage.getItem('searchState');
+
+  if (savedState) {
+    try {
+      const state = JSON.parse(savedState);
+      lastSearchData = state.data;
+      lastSearchQuery = state.query;
+      lastSearchScope = state.scope;
+      isSearchMode = true;
+
+      // Update search input
+      searchInput.value = state.query;
+      clearSearchBtn.classList.add('visible');
+
+      // Update scope radio
+      const scopeRadio = document.querySelector(`input[name="search-scope"][value="${state.scope}"]`);
+      if (scopeRadio) {
+        scopeRadio.checked = true;
+      }
+
+      // Render results
+      renderSearchResults(state.data, state.query, state.scope);
+
+      return true;
+    } catch (e) {
+      console.error('Error restoring search state:', e);
+      sessionStorage.removeItem('searchState');
+    }
+  }
+  return false;
+}
+
+// Try to restore search state, or load file tree if no search was active
+const hasRestoredSearch = restoreSearchState();
+if (!hasRestoredSearch) {
+  loadFileTree();
+}

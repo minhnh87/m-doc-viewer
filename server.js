@@ -581,6 +581,186 @@ app.get('/api/latest-plan', (req, res) => {
   }
 });
 
+// Helper function to search in a single file
+function searchInFile(fullPath, fileName, query, isExternal, relativePath) {
+  const searchLower = query.toLowerCase();
+  const ext = path.extname(fileName).toLowerCase();
+
+  try {
+    const content = fs.readFileSync(fullPath, 'utf-8');
+    const lines = content.split('\n');
+    const matches = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const lineLower = line.toLowerCase();
+      const matchIndex = lineLower.indexOf(searchLower);
+
+      if (matchIndex !== -1) {
+        // Get context around match (50 chars before/after)
+        const contextStart = Math.max(0, matchIndex - 50);
+        const contextEnd = Math.min(line.length, matchIndex + query.length + 50);
+        let context = line.substring(contextStart, contextEnd);
+
+        // Add ellipsis if truncated
+        if (contextStart > 0) context = '...' + context;
+        if (contextEnd < line.length) context = context + '...';
+
+        matches.push({
+          line: i + 1,
+          content: context,
+          matchStart: contextStart > 0 ? matchIndex - contextStart + 3 : matchIndex
+        });
+
+        // Limit to 5 matches per file
+        if (matches.length >= 5) break;
+      }
+    }
+
+    if (matches.length > 0) {
+      const fileInfo = {
+        name: fileName,
+        path: isExternal ? fullPath : relativePath,
+        fullPath: fullPath,
+        type: ext === '.drawio' ? 'drawio' : (ext === '.mermaid' || ext === '.mmd') ? 'mermaid' : 'markdown',
+        isExternal: isExternal
+      };
+
+      return {
+        file: fileInfo,
+        matches: matches
+      };
+    }
+  } catch (readError) {
+    console.error(`Error reading file ${fullPath}:`, readError);
+  }
+
+  return null;
+}
+
+// API endpoint to search text in folder
+app.get('/api/search', (req, res) => {
+  const query = req.query.query;
+  const folder = req.query.folder;
+  const isExternal = req.query.external === 'true';
+  const scope = req.query.scope || 'folder'; // 'folder' or 'all'
+
+  if (!query) {
+    return res.status(400).json({ error: 'Query is required' });
+  }
+
+  // For scope=all, folder is not required
+  if (scope === 'folder' && !folder && folder !== '') {
+    return res.status(400).json({ error: 'Folder is required' });
+  }
+
+  const results = [];
+  let totalMatches = 0;
+  let totalFiles = 0;
+
+  try {
+    if (scope === 'all') {
+      // Search in entire project (recursive)
+      const projectFiles = scanFiles(__dirname);
+
+      for (const file of projectFiles) {
+        const result = searchInFile(file.fullPath, file.name, query, false, file.path);
+        if (result) {
+          results.push(result);
+          totalMatches += result.matches.length;
+          totalFiles++;
+        }
+      }
+
+      // Search in external folders (from query param)
+      const externalFoldersParam = req.query.externalFolders;
+      if (externalFoldersParam) {
+        try {
+          const externalFolders = JSON.parse(externalFoldersParam);
+
+          for (const extFolder of externalFolders) {
+            if (!fs.existsSync(extFolder) || !fs.statSync(extFolder).isDirectory()) {
+              continue;
+            }
+
+            // Scan external folder (non-recursive as per existing behavior)
+            const entries = fs.readdirSync(extFolder, { withFileTypes: true });
+
+            for (const entry of entries) {
+              if (!entry.isFile()) continue;
+
+              const ext = path.extname(entry.name).toLowerCase();
+              if (!SUPPORTED_EXTENSIONS.includes(ext)) continue;
+
+              const fullPath = path.join(extFolder, entry.name);
+              const result = searchInFile(fullPath, entry.name, query, true, fullPath);
+              if (result) {
+                results.push(result);
+                totalMatches += result.matches.length;
+                totalFiles++;
+              }
+            }
+          }
+        } catch (parseError) {
+          console.error('Error parsing external folders:', parseError);
+        }
+      }
+
+    } else {
+      // Original behavior: search in single folder (non-recursive)
+      let searchDir;
+      if (isExternal) {
+        searchDir = folder;
+      } else {
+        searchDir = folder ? path.join(__dirname, folder) : __dirname;
+        // Security check
+        if (!searchDir.startsWith(__dirname)) {
+          return res.status(403).json({ error: 'Access denied' });
+        }
+      }
+
+      if (!fs.existsSync(searchDir)) {
+        return res.status(404).json({ error: 'Folder not found' });
+      }
+
+      const stats = fs.statSync(searchDir);
+      if (!stats.isDirectory()) {
+        return res.status(400).json({ error: 'Path is not a directory' });
+      }
+
+      // Read files in folder (non-recursive)
+      const entries = fs.readdirSync(searchDir, { withFileTypes: true });
+
+      for (const entry of entries) {
+        if (!entry.isFile()) continue;
+
+        const ext = path.extname(entry.name).toLowerCase();
+        if (!SUPPORTED_EXTENSIONS.includes(ext)) continue;
+
+        const fullPath = path.join(searchDir, entry.name);
+        const relativePath = folder ? path.join(folder, entry.name) : entry.name;
+
+        const result = searchInFile(fullPath, entry.name, query, isExternal, isExternal ? fullPath : relativePath);
+        if (result) {
+          results.push(result);
+          totalMatches += result.matches.length;
+          totalFiles++;
+        }
+      }
+    }
+
+    res.json({
+      results: results,
+      totalMatches: totalMatches,
+      totalFiles: totalFiles
+    });
+
+  } catch (error) {
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'Search failed' });
+  }
+});
+
 // API endpoint to validate external folder path
 app.post('/api/validate-folder', (req, res) => {
   const { path: folderPath } = req.body;

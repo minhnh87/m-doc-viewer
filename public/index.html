@@ -30,13 +30,17 @@
       <!-- Left Sidebar: File Tree -->
       <aside class="file-tree-sidebar">
         <div class="file-tree-header">
-          <h3><a href="?path=last_talk.md" class="logo-link"><img src="favicon.svg" alt="Logo" class="header-logo"></a> Files</h3>
-          <div class="header-actions">
+          <div class="file-tree-header-row">
+            <h3><a href="?path=last_talk.md" class="logo-link"><img src="favicon.svg" alt="Logo" class="header-logo"></a> Files</h3>
+            <div class="header-actions">
             <button id="quick-last-talk-btn" class="action-btn quick-btn" title="Last Talk">
               <svg viewBox="0 0 16 16"><path d="M0 2.75C0 1.784.784 1 1.75 1h12.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0114.25 15H1.75A1.75 1.75 0 010 13.25V2.75zm1.75-.25a.25.25 0 00-.25.25v10.5c0 .138.112.25.25.25h12.5a.25.25 0 00.25-.25V2.75a.25.25 0 00-.25-.25H1.75zM3.5 6.25a.75.75 0 01.75-.75h7a.75.75 0 010 1.5h-7a.75.75 0 01-.75-.75zm.75 2.25a.75.75 0 000 1.5h4a.75.75 0 000-1.5h-4z"></path></svg>
             </button>
             <button id="quick-latest-plan-btn" class="action-btn quick-btn" title="Latest Plan">
               <svg viewBox="0 0 16 16"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0113.25 16h-9.5A1.75 1.75 0 012 14.25V1.75zm1.75-.25a.25.25 0 00-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 00.25-.25V4.664a.25.25 0 00-.073-.177l-2.914-2.914a.25.25 0 00-.177-.073H3.75a.25.25 0 00-.25.25zM8 6.5a.75.75 0 01.75.75v1.5h1.5a.75.75 0 010 1.5h-1.5v1.5a.75.75 0 01-1.5 0v-1.5h-1.5a.75.75 0 010-1.5h1.5v-1.5A.75.75 0 018 6.5z"></path></svg>
+            </button>
+            <button id="toggle-search-btn" class="action-btn" title="Tìm kiếm (Ctrl+F)">
+              <svg viewBox="0 0 16 16"><path d="M10.68 11.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04ZM11.5 6a5.5 5.5 0 1 0-11 0 5.5 5.5 0 0 0 11 0Z"></path></svg>
             </button>
             <button id="create-folder-btn" class="action-btn" title="Tạo thư mục mới">
               <svg viewBox="0 0 16 16"><path d="M7.75 2a.75.75 0 01.75.75V7h4.25a.75.75 0 010 1.5H8.5v4.25a.75.75 0 01-1.5 0V8.5H2.75a.75.75 0 010-1.5H7V2.75A.75.75 0 017.75 2z"></path></svg>
@@ -48,6 +52,23 @@
               <svg viewBox="0 0 16 16"><path d="M7.47 10.78a.75.75 0 001.06 0l3.75-3.75a.75.75 0 00-1.06-1.06L8.75 8.44V1.75a.75.75 0 00-1.5 0v6.69L4.78 5.97a.75.75 0 00-1.06 1.06l3.75 3.75zM3.75 13a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5z"></path></svg>
             </button>
             <button id="close-file-tree" class="close-sidebar">✕</button>
+            </div>
+          </div>
+          <div class="search-panel" id="search-panel" style="display: none;">
+            <div class="search-container">
+              <input type="text" id="search-input" class="search-input" placeholder="Tìm trong folder...">
+              <button id="clear-search-btn" class="clear-search-btn" title="Xóa tìm kiếm">✕</button>
+            </div>
+            <div class="search-scope-options">
+              <label class="scope-option">
+                <input type="radio" name="search-scope" value="folder" checked>
+                <span>Folder</span>
+              </label>
+              <label class="scope-option">
+                <input type="radio" name="search-scope" value="all">
+                <span>Tất cả</span>
+              </label>
+            </div>
           </div>
         </div>
         <nav id="file-tree" class="file-tree">
