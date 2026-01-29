@@ -487,6 +487,47 @@ app.put('/api/file/move', (req, res) => {
   }
 });
 
+// Function to recursively scan external directories for supported files
+function scanExternalFiles(dirPath, basePath = dirPath) {
+  const files = [];
+
+  try {
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const fullPath = path.join(dirPath, entry.name);
+      const relativePath = path.relative(basePath, fullPath);
+
+      if (entry.isDirectory()) {
+        // Skip hidden directories
+        if (!entry.name.startsWith('.')) {
+          files.push(...scanExternalFiles(fullPath, basePath));
+        }
+      } else if (entry.isFile()) {
+        const ext = path.extname(entry.name).toLowerCase();
+        if (SUPPORTED_EXTENSIONS.includes(ext)) {
+          let type = 'markdown';
+          if (ext === '.drawio') type = 'drawio';
+          else if (ext === '.mermaid' || ext === '.mmd') type = 'mermaid';
+
+          files.push({
+            name: entry.name,
+            path: fullPath,
+            folder: relativePath === entry.name ? '.' : path.dirname(relativePath),
+            fullPath: fullPath,
+            isExternal: true,
+            type: type
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.error(`Error scanning external directory ${dirPath}:`, error);
+  }
+
+  return files;
+}
+
 // API endpoint to scan external folders for markdown files
 app.post('/api/external-files', (req, res) => {
   const { paths } = req.body;
@@ -509,33 +550,21 @@ app.post('/api/external-files', (req, res) => {
         continue;
       }
 
-      // Scan for supported files (non-recursive for external folders)
-      const files = [];
-      const entries = fs.readdirSync(folderPath, { withFileTypes: true });
+      // Scan for supported files (recursive)
+      const files = scanExternalFiles(folderPath);
 
-      for (const entry of entries) {
-        if (entry.isFile()) {
-          const ext = path.extname(entry.name).toLowerCase();
-          if (SUPPORTED_EXTENSIONS.includes(ext)) {
-            const fullPath = path.join(folderPath, entry.name);
-            let type = 'markdown';
-            if (ext === '.drawio') type = 'drawio';
-            else if (ext === '.mermaid' || ext === '.mmd') type = 'mermaid';
-
-            files.push({
-              name: entry.name,
-              path: fullPath,
-              folder: folderPath,
-              fullPath: fullPath,
-              isExternal: true,
-              type: type
-            });
-          }
+      // Group files by subfolder
+      const grouped = files.reduce((acc, file) => {
+        const folder = file.folder;
+        if (!acc[folder]) {
+          acc[folder] = [];
         }
-      }
+        acc[folder].push(file);
+        return acc;
+      }, {});
 
-      // Use folder path as key
-      result[folderPath] = files;
+      // Return grouped result with base path as key
+      result[folderPath] = grouped;
     } catch (error) {
       console.error(`Error scanning external folder ${folderPath}:`, error);
     }
@@ -672,7 +701,7 @@ app.get('/api/search', (req, res) => {
         }
       }
 
-      // Search in external folders (from query param)
+      // Search in external folders (from query param) - recursive
       const externalFoldersParam = req.query.externalFolders;
       if (externalFoldersParam) {
         try {
@@ -683,17 +712,11 @@ app.get('/api/search', (req, res) => {
               continue;
             }
 
-            // Scan external folder (non-recursive as per existing behavior)
-            const entries = fs.readdirSync(extFolder, { withFileTypes: true });
+            // Scan external folder recursively
+            const extFiles = scanExternalFiles(extFolder);
 
-            for (const entry of entries) {
-              if (!entry.isFile()) continue;
-
-              const ext = path.extname(entry.name).toLowerCase();
-              if (!SUPPORTED_EXTENSIONS.includes(ext)) continue;
-
-              const fullPath = path.join(extFolder, entry.name);
-              const result = searchInFile(fullPath, entry.name, query, true, fullPath);
+            for (const file of extFiles) {
+              const result = searchInFile(file.fullPath, file.name, query, true, file.fullPath);
               if (result) {
                 results.push(result);
                 totalMatches += result.matches.length;

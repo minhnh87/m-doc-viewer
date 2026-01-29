@@ -520,10 +520,13 @@ async function loadFileTree() {
     // Render external folders FIRST
     const sortedExternalFolders = Object.keys(externalFiles).sort();
     for (const folderPath of sortedExternalFolders) {
-      const folderFiles = externalFiles[folderPath];
+      const groupedFiles = externalFiles[folderPath]; // Now grouped by subfolder
       const folderName = folderPath.split('/').pop() || folderPath;
       const folderId = `ext-folder-${folderPath.replace(/[^a-z0-9]/gi, '-')}`;
-      const isExpanded = folderFiles.some(f => f.path === currentFilePath && isExternalFile);
+
+      // Check if any file in any subfolder is current
+      const allFiles = Object.values(groupedFiles).flat();
+      const isExpanded = allFiles.some(f => f.path === currentFilePath && isExternalFile);
 
       html += `
         <div class="tree-folder external-folder ${isExpanded ? 'expanded' : ''}">
@@ -540,20 +543,69 @@ async function loadFileTree() {
           <div class="tree-folder-content" id="${folderId}">
       `;
 
-      // Sort files alphabetically
-      folderFiles.sort((a, b) => a.name.localeCompare(b.name));
+      // Sort subfolders: '.' (root) first, then alphabetically
+      const sortedSubfolders = Object.keys(groupedFiles).sort((a, b) => {
+        if (a === '.') return -1;
+        if (b === '.') return 1;
+        return a.localeCompare(b);
+      });
 
-      for (const file of folderFiles) {
-        const isActive = file.path === currentFilePath && isExternalFile;
-        html += `
-          <div class="tree-file ${isActive ? 'active' : ''}" data-path="${file.path}" data-external="true">
-            <a href="index.html?path=${encodeURIComponent(file.path)}&external=true" class="tree-file-link">
-              ${getFileIcon(file.name)}
-              <span class="tree-file-name">${file.name}</span>
-            </a>
-            <button class="action-btn delete-btn external-delete-btn" data-delete-type="file" data-delete-path="${file.path}" data-delete-name="${file.name}" data-delete-external="true" title="Xóa file">${TRASH_ICON}</button>
-          </div>
-        `;
+      for (const subfolder of sortedSubfolders) {
+        const subfolderFiles = groupedFiles[subfolder];
+
+        if (subfolder === '.') {
+          // Root files - render directly
+          subfolderFiles.sort((a, b) => a.name.localeCompare(b.name));
+          for (const file of subfolderFiles) {
+            const isActive = file.path === currentFilePath && isExternalFile;
+            html += `
+              <div class="tree-file ${isActive ? 'active' : ''}" data-path="${file.path}" data-external="true">
+                <a href="index.html?path=${encodeURIComponent(file.path)}&external=true" class="tree-file-link">
+                  ${getFileIcon(file.name)}
+                  <span class="tree-file-name">${file.name}</span>
+                </a>
+                <button class="action-btn delete-btn external-delete-btn" data-delete-type="file" data-delete-path="${file.path}" data-delete-name="${file.name}" data-delete-external="true" title="Xóa file">${TRASH_ICON}</button>
+              </div>
+            `;
+          }
+        } else {
+          // Nested subfolder
+          const subFolderId = `ext-subfolder-${folderPath.replace(/[^a-z0-9]/gi, '-')}-${subfolder.replace(/[^a-z0-9]/gi, '-')}`;
+          const isSubfolderExpanded = subfolderFiles.some(f => f.path === currentFilePath && isExternalFile);
+
+          html += `
+            <div class="tree-folder external-subfolder ${isSubfolderExpanded ? 'expanded' : ''}">
+              <div class="tree-folder-header" data-folder="${subFolderId}">
+                <svg class="tree-icon folder-icon" viewBox="0 0 16 16" width="16" height="16">
+                  <path d="M1.75 1A1.75 1.75 0 000 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0016 13.25v-8.5A1.75 1.75 0 0014.25 3H7.5a.25.25 0 01-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1H1.75z"></path>
+                </svg>
+                <svg class="tree-icon chevron-icon" viewBox="0 0 16 16" width="16" height="16">
+                  <path d="M12.78 5.22a.749.749 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.06 0L3.22 6.28a.749.749 0 1 1 1.06-1.06L8 8.939l3.72-3.719a.749.749 0 0 1 1.06 0z"></path>
+                </svg>
+                <span class="tree-folder-name">${subfolder}</span>
+              </div>
+              <div class="tree-folder-content" id="${subFolderId}">
+          `;
+
+          subfolderFiles.sort((a, b) => a.name.localeCompare(b.name));
+          for (const file of subfolderFiles) {
+            const isActive = file.path === currentFilePath && isExternalFile;
+            html += `
+              <div class="tree-file ${isActive ? 'active' : ''}" data-path="${file.path}" data-external="true">
+                <a href="index.html?path=${encodeURIComponent(file.path)}&external=true" class="tree-file-link">
+                  ${getFileIcon(file.name)}
+                  <span class="tree-file-name">${file.name}</span>
+                </a>
+                <button class="action-btn delete-btn external-delete-btn" data-delete-type="file" data-delete-path="${file.path}" data-delete-name="${file.name}" data-delete-external="true" title="Xóa file">${TRASH_ICON}</button>
+              </div>
+            `;
+          }
+
+          html += `
+              </div>
+            </div>
+          `;
+        }
       }
 
       html += `
@@ -1608,6 +1660,22 @@ document.addEventListener('keydown', (e) => {
     // L => open last_talk.md
     e.preventDefault();
     window.location.href = 'index.html?path=last_talk.md';
+  } else if (e.key === 'p' || e.key === 'P') {
+    // P => open latest plan file
+    e.preventDefault();
+    fetch('/api/latest-plan')
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          alert('Lỗi: ' + data.error);
+        } else {
+          window.location.href = `index.html?path=${encodeURIComponent(data.path)}&external=true`;
+        }
+      })
+      .catch(error => {
+        console.error('Error getting latest plan:', error);
+        alert('Lỗi: ' + error.message);
+      });
   }
 });
 
