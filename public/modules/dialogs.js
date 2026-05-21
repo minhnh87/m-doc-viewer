@@ -3,6 +3,9 @@
 import { WARNING_ICON, CLOSE_ICON } from './icons.js';
 import { addExternalFolder } from './storage.js';
 import { getState } from './state.js';
+import { apiFetch } from './api.js';
+import { loadFileTree, saveTreeState, restoreTreeState } from './file-tree.js';
+import { navigateToFile } from './navigation.js';
 
 // ========================================
 // CONFIRM DIALOG (Delete)
@@ -69,25 +72,19 @@ export async function executeDelete() {
   const externalParam = isExternal ? '&external=true' : '';
 
   try {
-    const response = await fetch(`${endpoint}?path=${encodeURIComponent(path)}${externalParam}`, {
+    const data = await apiFetch(`${endpoint}?path=${encodeURIComponent(path)}${externalParam}`, {
       method: 'DELETE'
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to delete');
-    }
-
     hideConfirmDialog();
 
-    // Dynamically import to avoid circular dependency
-    const { loadFileTree } = await import('./file-tree.js');
-    loadFileTree();
+    const treeState = saveTreeState();
+    await loadFileTree();
+    restoreTreeState(treeState);
 
     const state = getState();
     if (type === 'file' && path === state.currentFilePath) {
-      window.location.href = '/';
+      navigateToFile('/', false);
     }
   } catch (error) {
     console.error('Delete error:', error);
@@ -172,15 +169,13 @@ export async function executeInputAction() {
 
   try {
     if (inputTarget.action === 'create-folder') {
-      const response = await fetch('/api/folder', {
+      const data = await apiFetch('/api/folder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: value })
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
     } else if (inputTarget.action === 'rename') {
-      const response = await fetch('/api/rename', {
+      const data = await apiFetch('/api/rename', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -189,20 +184,23 @@ export async function executeInputAction() {
           type: inputTarget.type
         })
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
 
       const state = getState();
       if (inputTarget.type === 'file' && inputTarget.path === state.currentFilePath) {
         const newPath = inputTarget.path.replace(/[^/]+$/, value);
-        window.location.href = `index.html?path=${encodeURIComponent(newPath)}`;
+        hideInputDialog();
+        const treeState = saveTreeState();
+        await loadFileTree();
+        restoreTreeState(treeState);
+        navigateToFile(newPath, false);
         return;
       }
     }
 
     hideInputDialog();
-    const { loadFileTree } = await import('./file-tree.js');
-    loadFileTree();
+    const treeState = saveTreeState();
+    await loadFileTree();
+    restoreTreeState(treeState);
   } catch (error) {
     console.error('Action error:', error);
     alert('Loi: ' + error.message);
@@ -247,8 +245,7 @@ export async function showMoveDialog(path, name) {
   const currentFolder = path.includes('/') ? path.substring(0, path.lastIndexOf('/')) : '';
 
   try {
-    const response = await fetch('/api/files');
-    const files = await response.json();
+    const files = await apiFetch('/api/files');
     const cachedFolders = Object.keys(files).filter(f => f !== 'Root').sort();
 
     let html = '';
@@ -301,7 +298,7 @@ export async function executeMove(toFolder) {
   const { path: fromPath, name: fileName } = moveTarget;
 
   try {
-    const response = await fetch('/api/file/move', {
+    const data = await apiFetch('/api/file/move', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -310,17 +307,15 @@ export async function executeMove(toFolder) {
       })
     });
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error);
-
     hideMoveDialog();
-    const { loadFileTree } = await import('./file-tree.js');
-    loadFileTree();
+    const treeState = saveTreeState();
+    await loadFileTree();
+    restoreTreeState(treeState);
 
     const state = getState();
     if (fromPath === state.currentFilePath) {
       const newPath = toFolder ? `${toFolder}/${fileName}` : fileName;
-      window.location.href = `index.html?path=${encodeURIComponent(newPath)}`;
+      navigateToFile(newPath, false);
     }
   } catch (error) {
     console.error('Move error:', error);
@@ -386,13 +381,11 @@ export async function executeAddFolder() {
   }
 
   try {
-    const response = await fetch('/api/validate-folder', {
+    const data = await apiFetch('/api/validate-folder', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: folderPath })
     });
-
-    const data = await response.json();
 
     if (!data.valid) {
       alert('Loi: ' + (data.error || 'Folder khong hop le'));
@@ -401,8 +394,9 @@ export async function executeAddFolder() {
 
     addExternalFolder(folderPath);
     hideAddFolderDialog();
-    const { loadFileTree } = await import('./file-tree.js');
-    loadFileTree();
+    const treeState = saveTreeState();
+    await loadFileTree();
+    restoreTreeState(treeState);
   } catch (error) {
     console.error('Error adding folder:', error);
     alert('Loi: ' + error.message);

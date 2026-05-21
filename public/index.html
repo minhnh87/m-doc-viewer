@@ -28,7 +28,7 @@
 
     <div class="viewer-layout">
       <!-- Left Sidebar: File Tree -->
-      <aside class="file-tree-sidebar">
+      <aside class="file-tree-sidebar" id="file-tree-sidebar">
         <div class="file-tree-header">
           <div class="file-tree-header-row">
             <h3><a href="?path=last_talk.md" class="logo-link"><img src="favicon.svg" alt="Logo" class="header-logo"></a> Files</h3>
@@ -76,14 +76,20 @@
         </nav>
       </aside>
 
+      <!-- Resize handle: between file tree and content -->
+      <div class="resize-handle" id="resize-handle-left" title="Kéo để resize"></div>
+
       <!-- Main Content -->
       <main class="viewer-content">
         <div id="loading" class="loading">Loading markdown...</div>
         <div id="markdown-content" class="markdown-body"></div>
       </main>
 
+      <!-- Resize handle: between content and outline -->
+      <div class="resize-handle" id="resize-handle-right" title="Kéo để resize"></div>
+
       <!-- Right Sidebar: Outline -->
-      <aside class="outline-sidebar">
+      <aside class="outline-sidebar" id="outline-sidebar">
         <div class="outline-header">
           <h3>Outline</h3>
           <button id="close-outline" class="close-sidebar">✕</button>
@@ -99,6 +105,13 @@
     <button id="toggle-outline" class="toggle-outline">
       <span>☰</span> Outline
     </button>
+
+    <!-- Zoom Controls -->
+    <div class="zoom-controls" id="zoom-controls">
+      <button class="zoom-btn" id="zoom-out-btn" title="Zoom Out (Ctrl+-)">−</button>
+      <button class="zoom-level" id="zoom-level-btn" title="Reset zoom (Ctrl+0)">100%</button>
+      <button class="zoom-btn" id="zoom-in-btn" title="Zoom In (Ctrl++)">+</button>
+    </div>
   </div>
 
   <script type="module" src="view.js"></script>

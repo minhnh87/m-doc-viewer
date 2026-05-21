@@ -7,6 +7,10 @@ import { loadContent } from './modules/content-loader.js';
 import { setupKeyboardNavigation, setupHotkeys } from './modules/keyboard.js';
 import { exportToStaticHTML } from './modules/export.js';
 import { setupSearchListeners, restoreSearchState } from './modules/search.js';
+import { apiFetch } from './modules/api.js';
+import { navigateToFile } from './modules/navigation.js';
+import { initResize } from './modules/resize.js';
+import { initZoom } from './modules/zoom.js';
 
 // Initialize state check
 const state = getState();
@@ -16,6 +20,12 @@ if (!state.currentFilePath) {
 
 // Initialize all dialogs
 initDialogs();
+
+// Initialize sidebar resize handles
+initResize();
+
+// Initialize content zoom
+initZoom();
 
 // Toggle sidebars on mobile
 const toggleFileTreeButton = document.getElementById('toggle-file-tree');
@@ -55,20 +65,14 @@ document.getElementById('add-external-folder-btn').addEventListener('click', () 
 
 // Quick button: Last Talk
 document.getElementById('quick-last-talk-btn').addEventListener('click', () => {
-  window.location.href = 'index.html?path=last_talk.md';
+  navigateToFile('last_talk.md', false);
 });
 
 // Quick button: Latest Plan
 document.getElementById('quick-latest-plan-btn').addEventListener('click', async () => {
   try {
-    const response = await fetch('/api/latest-plan');
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to get latest plan');
-    }
-
-    window.location.href = `index.html?path=${encodeURIComponent(data.path)}&external=true`;
+    const data = await apiFetch('/api/latest-plan');
+    navigateToFile(data.path, true);
   } catch (error) {
     console.error('Error getting latest plan:', error);
     alert('Loi: ' + error.message);
@@ -95,3 +99,13 @@ const hasRestoredSearch = restoreSearchState();
 if (!hasRestoredSearch) {
   loadFileTree();
 }
+
+// Handle browser back/forward navigation
+window.addEventListener('popstate', () => {
+  const params = new URLSearchParams(window.location.search);
+  const path = params.get('path');
+  const external = params.get('external') === 'true';
+  if (path) {
+    navigateToFile(path, external, { pushState: false });
+  }
+});

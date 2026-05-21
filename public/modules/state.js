@@ -4,7 +4,8 @@ const urlParams = new URLSearchParams(window.location.search);
 
 const state = {
   currentFilePath: urlParams.get('path'),
-  isExternalFile: urlParams.get('external') === 'true'
+  isExternalFile: urlParams.get('external') === 'true',
+  folderFilter: urlParams.get('f') || null
 };
 
 export function getState() {

@@ -3,6 +3,7 @@
 import { generateOutline, renderOutline } from './outline.js';
 import { setupScrollSpy } from './scroll-spy.js';
 import { getState } from './state.js';
+import { apiFetch } from './api.js';
 
 export async function loadMarkdown() {
   const state = getState();
@@ -11,12 +12,7 @@ export async function loadMarkdown() {
 
   try {
     const externalParam = isExternalFile ? '&external=true' : '';
-    const response = await fetch(`/api/file?path=${encodeURIComponent(currentFilePath)}${externalParam}`);
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to load file');
-    }
+    const data = await apiFetch(`/api/content?path=${encodeURIComponent(currentFilePath)}${externalParam}`);
 
     const fileName = currentFilePath.split('/').pop();
     document.getElementById('file-title').textContent = fileName;
@@ -46,12 +42,7 @@ export async function loadDrawio() {
 
   try {
     const externalParam = isExternalFile ? '&external=true' : '';
-    const response = await fetch(`/api/drawio?path=${encodeURIComponent(currentFilePath)}${externalParam}`);
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to load drawio file');
-    }
+    const data = await apiFetch(`/api/content?path=${encodeURIComponent(currentFilePath)}${externalParam}`);
 
     const fileName = currentFilePath.split('/').pop();
     document.getElementById('file-title').textContent = fileName;
@@ -109,12 +100,7 @@ export async function loadMermaid() {
 
   try {
     const externalParam = isExternalFile ? '&external=true' : '';
-    const response = await fetch(`/api/mermaid?path=${encodeURIComponent(currentFilePath)}${externalParam}`);
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to load mermaid file');
-    }
+    const data = await apiFetch(`/api/content?path=${encodeURIComponent(currentFilePath)}${externalParam}`);
 
     const fileName = currentFilePath.split('/').pop();
     document.getElementById('file-title').textContent = fileName;

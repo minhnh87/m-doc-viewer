@@ -3,21 +3,28 @@ const fs = require('fs');
 const path = require('path');
 const { marked } = require('marked');
 
+// ── Configuration ────────────────────────────────────────────────────────────
+const CONFIG = {
+  port: process.env.PORT || 3001,
+  staticDir: 'public',
+  plansDir: path.join(require('os').homedir(), '.claude', 'plans'),
+  excludedDirs: ['.git', '.claude', 'node_modules', 'public', '.ipam'],
+  supportedExtensions: ['.md', '.drawio', '.mermaid', '.mmd'],
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 const app = express();
-const PORT = 3001;
 
 // Middleware
 app.use(express.json());
-app.use(express.static('public'));
-
-// Directories to exclude from scanning
-const EXCLUDED_DIRS = ['.git', '.claude', 'node_modules', 'public', '.ipam'];
-
-// Supported file extensions
-const SUPPORTED_EXTENSIONS = ['.md', '.drawio', '.mermaid', '.mmd'];
+app.use(express.static(CONFIG.staticDir));
 
 // Function to recursively scan directories for supported files
-function scanFiles(dirPath, basePath = dirPath) {
+// options: { basePath, isExternal, externalRoot }
+function scanFiles(dirPath, options = {}) {
+  const basePath = options.basePath || dirPath;
+  const isExternal = options.isExternal || false;
+  const externalRoot = options.externalRoot || basePath;
   const files = [];
 
   try {
@@ -28,25 +35,34 @@ function scanFiles(dirPath, basePath = dirPath) {
       const relativePath = path.relative(basePath, fullPath);
 
       if (entry.isDirectory()) {
-        // Skip excluded directories
-        if (!EXCLUDED_DIRS.includes(entry.name) && !entry.name.startsWith('.')) {
-          files.push(...scanFiles(fullPath, basePath));
-        }
+        // Skip hidden directories; also skip excluded dirs for local scans
+        if (entry.name.startsWith('.')) continue;
+        if (!isExternal && CONFIG.excludedDirs.includes(entry.name)) continue;
+
+        files.push(...scanFiles(fullPath, { basePath, isExternal, externalRoot }));
       } else if (entry.isFile()) {
         // Check if file has supported extension
         const ext = path.extname(entry.name).toLowerCase();
-        if (SUPPORTED_EXTENSIONS.includes(ext)) {
+        if (CONFIG.supportedExtensions.includes(ext)) {
           let type = 'markdown';
           if (ext === '.drawio') type = 'drawio';
           else if (ext === '.mermaid' || ext === '.mmd') type = 'mermaid';
 
-          files.push({
+          const fileEntry = {
             name: entry.name,
-            path: relativePath,
-            folder: path.dirname(relativePath),
+            path: isExternal ? fullPath : relativePath,
+            folder: isExternal
+              ? (relativePath === entry.name ? '.' : path.dirname(relativePath))
+              : path.dirname(relativePath),
             fullPath: fullPath,
             type: type
-          });
+          };
+
+          if (isExternal) {
+            fileEntry.isExternal = true;
+          }
+
+          files.push(fileEntry);
         }
       }
     }
@@ -66,7 +82,7 @@ function getAllFolders(dirPath, basePath = dirPath) {
 
     for (const entry of entries) {
       if (entry.isDirectory()) {
-        if (!EXCLUDED_DIRS.includes(entry.name) && !entry.name.startsWith('.')) {
+        if (!CONFIG.excludedDirs.includes(entry.name) && !entry.name.startsWith('.')) {
           const fullPath = path.join(dirPath, entry.name);
           const relativePath = path.relative(basePath, fullPath);
           folders.push(relativePath);
@@ -107,8 +123,8 @@ app.get('/api/files', (req, res) => {
   res.json(grouped);
 });
 
-// API endpoint to get markdown file content
-app.get('/api/file', (req, res) => {
+// Unified API endpoint to get file content (markdown, drawio, mermaid)
+app.get('/api/content', (req, res) => {
   const filePath = req.query.path;
   const isExternal = req.query.external === 'true';
 
@@ -116,134 +132,31 @@ app.get('/api/file', (req, res) => {
     return res.status(400).json({ error: 'File path is required' });
   }
 
-  let fullPath;
-
-  if (isExternal) {
-    // External file - use the path directly
-    fullPath = filePath;
-  } else {
-    fullPath = path.join(__dirname, filePath);
-    // Security check: ensure the path is within the project directory
-    if (!fullPath.startsWith(__dirname)) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-  }
-
   try {
-    // Validate file exists and is a file
-    if (!fs.existsSync(fullPath)) {
-      return res.status(404).json({ error: 'File not found' });
-    }
-
-    const stats = fs.statSync(fullPath);
-    if (!stats.isFile()) {
-      return res.status(400).json({ error: 'Path is not a file' });
-    }
-
+    const { fullPath } = resolveFilePath(filePath, isExternal);
     const content = fs.readFileSync(fullPath, 'utf-8');
-    const html = marked(content);
+    const ext = path.extname(filePath).toLowerCase();
 
-    res.json({
-      content: content,
-      html: html,
-      path: filePath,
-      isExternal: isExternal
-    });
+    // Auto-detect type from extension
+    let type;
+    if (ext === '.drawio') {
+      type = 'drawio';
+    } else if (ext === '.mermaid' || ext === '.mmd') {
+      type = 'mermaid';
+    } else {
+      type = 'markdown';
+    }
+
+    const response = { content, type, path: filePath, isExternal };
+
+    // Add rendered html for markdown files
+    if (type === 'markdown') {
+      response.html = marked(content);
+    }
+
+    res.json(response);
   } catch (error) {
-    res.status(404).json({ error: 'File not found' });
-  }
-});
-
-// API endpoint to get drawio file content (XML)
-app.get('/api/drawio', (req, res) => {
-  const filePath = req.query.path;
-  const isExternal = req.query.external === 'true';
-
-  if (!filePath) {
-    return res.status(400).json({ error: 'File path is required' });
-  }
-
-  // Validate it's a .drawio file
-  if (!filePath.endsWith('.drawio')) {
-    return res.status(400).json({ error: 'Not a drawio file' });
-  }
-
-  let fullPath;
-
-  if (isExternal) {
-    fullPath = filePath;
-  } else {
-    fullPath = path.join(__dirname, filePath);
-    if (!fullPath.startsWith(__dirname)) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-  }
-
-  try {
-    if (!fs.existsSync(fullPath)) {
-      return res.status(404).json({ error: 'File not found' });
-    }
-
-    const stats = fs.statSync(fullPath);
-    if (!stats.isFile()) {
-      return res.status(400).json({ error: 'Path is not a file' });
-    }
-
-    const content = fs.readFileSync(fullPath, 'utf-8');
-
-    res.json({
-      content: content,
-      path: filePath,
-      isExternal: isExternal
-    });
-  } catch (error) {
-    res.status(404).json({ error: 'File not found' });
-  }
-});
-
-// API endpoint to get mermaid file content
-app.get('/api/mermaid', (req, res) => {
-  const filePath = req.query.path;
-  const isExternal = req.query.external === 'true';
-
-  if (!filePath) {
-    return res.status(400).json({ error: 'File path is required' });
-  }
-
-  // Validate it's a mermaid file
-  if (!filePath.endsWith('.mermaid') && !filePath.endsWith('.mmd')) {
-    return res.status(400).json({ error: 'Not a mermaid file' });
-  }
-
-  let fullPath;
-
-  if (isExternal) {
-    fullPath = filePath;
-  } else {
-    fullPath = path.join(__dirname, filePath);
-    if (!fullPath.startsWith(__dirname)) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-  }
-
-  try {
-    if (!fs.existsSync(fullPath)) {
-      return res.status(404).json({ error: 'File not found' });
-    }
-
-    const stats = fs.statSync(fullPath);
-    if (!stats.isFile()) {
-      return res.status(400).json({ error: 'Path is not a file' });
-    }
-
-    const content = fs.readFileSync(fullPath, 'utf-8');
-
-    res.json({
-      content: content,
-      path: filePath,
-      isExternal: isExternal
-    });
-  } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.error });
     res.status(404).json({ error: 'File not found' });
   }
 });
@@ -262,11 +175,37 @@ function isPathSafe(filePath) {
   const relativePath = path.relative(projectRoot, fullPath);
   const firstDir = relativePath.split(path.sep)[0];
 
-  if (EXCLUDED_DIRS.includes(firstDir) || relativePath === '') {
+  if (CONFIG.excludedDirs.includes(firstDir) || relativePath === '') {
     return false;
   }
 
   return true;
+}
+
+// Shared helper: resolve file path (external vs local), validate existence
+// Returns { fullPath, relativePath } or throws { status, error }
+function resolveFilePath(filePath, isExternal) {
+  let fullPath;
+
+  if (isExternal) {
+    fullPath = filePath;
+  } else {
+    fullPath = path.join(__dirname, filePath);
+    if (!fullPath.startsWith(__dirname)) {
+      throw { status: 403, error: 'Access denied' };
+    }
+  }
+
+  if (!fs.existsSync(fullPath)) {
+    throw { status: 404, error: 'File not found' };
+  }
+
+  const stats = fs.statSync(fullPath);
+  if (!stats.isFile()) {
+    throw { status: 400, error: 'Path is not a file' };
+  }
+
+  return { fullPath, relativePath: filePath };
 }
 
 // API endpoint to delete a file
@@ -278,40 +217,26 @@ app.delete('/api/file', (req, res) => {
     return res.status(400).json({ error: 'File path is required' });
   }
 
-  let fullPath;
-
+  // Delete-specific security checks
   if (isExternal) {
-    // External file - use the path directly
-    fullPath = filePath;
-
-    // Ensure it's a markdown file for safety
-    if (!fullPath.endsWith('.md')) {
+    if (!filePath.endsWith('.md')) {
       return res.status(403).json({ error: 'Access denied: Can only delete markdown files' });
     }
   } else {
     if (!isPathSafe(filePath)) {
       return res.status(403).json({ error: 'Access denied: Cannot delete this file' });
     }
-    fullPath = path.join(__dirname, filePath);
   }
 
   try {
-    // Check if file exists
-    if (!fs.existsSync(fullPath)) {
-      return res.status(404).json({ error: 'File not found' });
-    }
-
-    // Check if it's actually a file
-    const stats = fs.statSync(fullPath);
-    if (!stats.isFile()) {
-      return res.status(400).json({ error: 'Path is not a file' });
-    }
+    const { fullPath } = resolveFilePath(filePath, isExternal);
 
     // Delete the file
     fs.unlinkSync(fullPath);
 
     res.json({ success: true, message: 'File deleted successfully', path: filePath, isExternal });
   } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.error });
     console.error('Error deleting file:', error);
     res.status(500).json({ error: 'Failed to delete file' });
   }
@@ -487,47 +412,6 @@ app.put('/api/file/move', (req, res) => {
   }
 });
 
-// Function to recursively scan external directories for supported files
-function scanExternalFiles(dirPath, basePath = dirPath) {
-  const files = [];
-
-  try {
-    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-
-    for (const entry of entries) {
-      const fullPath = path.join(dirPath, entry.name);
-      const relativePath = path.relative(basePath, fullPath);
-
-      if (entry.isDirectory()) {
-        // Skip hidden directories
-        if (!entry.name.startsWith('.')) {
-          files.push(...scanExternalFiles(fullPath, basePath));
-        }
-      } else if (entry.isFile()) {
-        const ext = path.extname(entry.name).toLowerCase();
-        if (SUPPORTED_EXTENSIONS.includes(ext)) {
-          let type = 'markdown';
-          if (ext === '.drawio') type = 'drawio';
-          else if (ext === '.mermaid' || ext === '.mmd') type = 'mermaid';
-
-          files.push({
-            name: entry.name,
-            path: fullPath,
-            folder: relativePath === entry.name ? '.' : path.dirname(relativePath),
-            fullPath: fullPath,
-            isExternal: true,
-            type: type
-          });
-        }
-      }
-    }
-  } catch (error) {
-    console.error(`Error scanning external directory ${dirPath}:`, error);
-  }
-
-  return files;
-}
-
 // API endpoint to scan external folders for markdown files
 app.post('/api/external-files', (req, res) => {
   const { paths } = req.body;
@@ -551,7 +435,7 @@ app.post('/api/external-files', (req, res) => {
       }
 
       // Scan for supported files (recursive)
-      const files = scanExternalFiles(folderPath);
+      const files = scanFiles(folderPath, { isExternal: true });
 
       // Group files by subfolder
       const grouped = files.reduce((acc, file) => {
@@ -575,7 +459,7 @@ app.post('/api/external-files', (req, res) => {
 
 // API endpoint to get the latest plan file
 app.get('/api/latest-plan', (req, res) => {
-  const plansDir = '/Users/minh/.claude/plans';
+  const plansDir = CONFIG.plansDir;
 
   try {
     if (!fs.existsSync(plansDir)) {
@@ -713,7 +597,7 @@ app.get('/api/search', (req, res) => {
             }
 
             // Scan external folder recursively
-            const extFiles = scanExternalFiles(extFolder);
+            const extFiles = scanFiles(extFolder, { isExternal: true });
 
             for (const file of extFiles) {
               const result = searchInFile(file.fullPath, file.name, query, true, file.fullPath);
@@ -758,7 +642,7 @@ app.get('/api/search', (req, res) => {
         if (!entry.isFile()) continue;
 
         const ext = path.extname(entry.name).toLowerCase();
-        if (!SUPPORTED_EXTENSIONS.includes(ext)) continue;
+        if (!CONFIG.supportedExtensions.includes(ext)) continue;
 
         const fullPath = path.join(searchDir, entry.name);
         const relativePath = folder ? path.join(folder, entry.name) : entry.name;
@@ -809,6 +693,6 @@ app.post('/api/validate-folder', (req, res) => {
 });
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Markdown reader server running at http://localhost:${PORT}`);
+app.listen(CONFIG.port, () => {
+  console.log(`Markdown reader server running at http://localhost:${CONFIG.port}`);
 });

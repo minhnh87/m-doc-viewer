@@ -1,5 +1,8 @@
 // Keyboard navigation and hotkeys
 
+import { apiFetch } from './api.js';
+import { navigateToFile } from './navigation.js';
+
 export function setupKeyboardNavigation() {
   document.addEventListener('keydown', (e) => {
     // Ignore if user is typing in an input field
@@ -68,18 +71,13 @@ export function setupHotkeys(searchPanel, searchInput) {
     } else if (e.key === 'l' || e.key === 'L') {
       // L => open last_talk.md
       e.preventDefault();
-      window.location.href = 'index.html?path=last_talk.md';
+      navigateToFile('last_talk.md', false);
     } else if (e.key === 'p' || e.key === 'P') {
       // P => open latest plan file
       e.preventDefault();
-      fetch('/api/latest-plan')
-        .then(response => response.json())
+      apiFetch('/api/latest-plan')
         .then(data => {
-          if (data.error) {
-            alert('Loi: ' + data.error);
-          } else {
-            window.location.href = `index.html?path=${encodeURIComponent(data.path)}&external=true`;
-          }
+          navigateToFile(data.path, true);
         })
         .catch(error => {
           console.error('Error getting latest plan:', error);

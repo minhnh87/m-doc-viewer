@@ -4,6 +4,8 @@ import { getExternalFolders } from './storage.js';
 import { getFileIcon } from './icons.js';
 import { loadFileTree } from './file-tree.js';
 import { getState } from './state.js';
+import { apiFetch } from './api.js';
+import { navigateToFile } from './navigation.js';
 
 let isSearchMode = false;
 let lastSearchData = null;
@@ -103,7 +105,7 @@ function renderSearchResults(data, query, scope = 'folder') {
     for (const match of result.matches) {
       const highlightedContent = highlightMatch(match.content, query);
       html += `
-        <a href="index.html?path=${encodeURIComponent(file.path)}${externalParam}" class="search-match-line" data-path="${file.path}" data-external="${file.isExternal}">
+        <a href="#" class="search-match-line" data-nav-path="${file.path}" data-nav-external="${file.isExternal}">
           <span class="line-number">${match.line}:</span>${highlightedContent}
         </a>
       `;
@@ -123,8 +125,18 @@ function renderSearchResults(data, query, scope = 'folder') {
     header.addEventListener('click', () => {
       const path = header.dataset.path;
       const isExternal = header.dataset.external === 'true';
-      const externalParam = isExternal ? '&external=true' : '';
-      window.location.href = `index.html?path=${encodeURIComponent(path)}${externalParam}`;
+      navigateToFile(path, isExternal);
+    });
+  });
+
+  // Event delegation for search match line clicks
+  const matchLinks = fileTreeNav.querySelectorAll('.search-match-line');
+  matchLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const path = link.dataset.navPath;
+      const isExternal = link.dataset.navExternal === 'true';
+      navigateToFile(path, isExternal);
     });
   });
 }
@@ -159,12 +171,7 @@ export async function performSearch(query) {
       url = `/api/search?query=${encodeURIComponent(query)}&folder=${encodeURIComponent(folderParam)}${externalParam}&scope=folder`;
     }
 
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Search failed');
-    }
+    const data = await apiFetch(url);
 
     lastSearchData = data;
     lastSearchQuery = query;
