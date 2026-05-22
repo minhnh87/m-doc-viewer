@@ -17,12 +17,21 @@ const LAST_TALK_FILES = [
   { name: 'last_talk_2.md', path: 'last_talk_2.md', type: 'markdown' }
 ];
 
+// Indentation step per nesting level inside an external folder (px).
+// At any depth, files and subfolder headers share the same left padding so
+// their leading icons line up visually like siblings in a tree.
+const NEST_INDENT = 16;
+const BASE_FILE_PAD = 44;
+const BASE_SUBFOLDER_PAD = 44;
+
 // --- Render helpers ---
 
-function renderExternalFileItem(file, isActive) {
+function renderExternalFileItem(file, isActive, depth = 0) {
+  const padLeft = BASE_FILE_PAD + depth * NEST_INDENT;
+  const linkStyle = depth > 0 ? ` style="padding-left: ${padLeft}px"` : '';
   return `
     <div class="tree-file ${isActive ? 'active' : ''}" data-path="${file.path}" data-external="true">
-      <a href="#" class="tree-file-link" title="${file.name}" data-nav-path="${file.path}" data-nav-external="true">
+      <a href="#" class="tree-file-link" title="${file.name}" data-nav-path="${file.path}" data-nav-external="true"${linkStyle}>
         ${getFileIcon(file.name)}
         <span class="tree-file-name">${file.name}</span>
       </a>
@@ -62,53 +71,85 @@ function renderFolderHeader(folderId, folderName, { folderPath, extraClass = '',
   `;
 }
 
-function renderExternalSubfolder(subfolder, subfolderFiles, folderPath, currentFilePath, isExternalFile) {
-  const subFolderId = `ext-subfolder-${folderPath.replace(/[^a-z0-9]/gi, '-')}-${subfolder.replace(/[^a-z0-9]/gi, '-')}`;
-  const isSubfolderExpanded = subfolderFiles.some(f => f.path === currentFilePath && isExternalFile);
+// Build a nested tree from the flat { "subfolder/path": [files] } map returned by the API.
+// Result shape: { files: [], children: { name: { files, children } } }
+function buildSubfolderTree(groupedFiles) {
+  const root = { files: [], children: {} };
 
-  subfolderFiles.sort((a, b) => a.name.localeCompare(b.name));
-  const filesHtml = subfolderFiles.map(file => {
-    const isActive = file.path === currentFilePath && isExternalFile;
-    return renderExternalFileItem(file, isActive);
-  }).join('');
+  for (const folderKey of Object.keys(groupedFiles)) {
+    const files = groupedFiles[folderKey] || [];
+    if (folderKey === '.') {
+      root.files = root.files.concat(files);
+      continue;
+    }
+    const parts = folderKey.split('/').filter(Boolean);
+    let node = root;
+    for (const part of parts) {
+      if (!node.children[part]) {
+        node.children[part] = { files: [], children: {} };
+      }
+      node = node.children[part];
+    }
+    node.files = node.files.concat(files);
+  }
+
+  return root;
+}
+
+function treeContainsActiveFile(node, currentFilePath, isExternalFile) {
+  if (!isExternalFile || !currentFilePath) return false;
+  if (node.files.some(f => f.path === currentFilePath)) return true;
+  for (const child of Object.values(node.children)) {
+    if (treeContainsActiveFile(child, currentFilePath, isExternalFile)) return true;
+  }
+  return false;
+}
+
+function renderNestedExternalSubfolder(name, subPath, subtree, externalRootPath, currentFilePath, isExternalFile, depth) {
+  const rootSlug = externalRootPath.replace(/[^a-z0-9]/gi, '-');
+  const subSlug = subPath.replace(/[^a-z0-9]/gi, '-');
+  const subFolderId = `ext-subfolder-${rootSlug}-${subSlug}`;
+  const isExpanded = treeContainsActiveFile(subtree, currentFilePath, isExternalFile);
+  const headerPad = BASE_SUBFOLDER_PAD + depth * NEST_INDENT;
+  const contentHtml = renderExternalTreeContent(subtree, externalRootPath, subPath, currentFilePath, isExternalFile, depth + 1);
 
   return `
-    <div class="tree-folder external-subfolder ${isSubfolderExpanded ? 'expanded' : ''}">
-      ${renderFolderHeader(subFolderId, subfolder)}
+    <div class="tree-folder external-subfolder ${isExpanded ? 'expanded' : ''}">
+      <div class="tree-folder-header" data-folder="${subFolderId}" style="padding-left: ${headerPad}px">
+        ${FOLDER_ICON}
+        ${CHEVRON_ICON}
+        <span class="tree-folder-name" title="${subPath}">${name}</span>
+      </div>
       <div class="tree-folder-content" id="${subFolderId}">
-        ${filesHtml}
+        ${contentHtml}
       </div>
     </div>
   `;
+}
+
+function renderExternalTreeContent(node, externalRootPath, parentSubPath, currentFilePath, isExternalFile, depth) {
+  const sortedFiles = [...node.files].sort((a, b) => a.name.localeCompare(b.name));
+  const filesHtml = sortedFiles.map(file => {
+    const isActive = file.path === currentFilePath && isExternalFile;
+    return renderExternalFileItem(file, isActive, depth);
+  }).join('');
+
+  const sortedChildren = Object.keys(node.children).sort((a, b) => a.localeCompare(b));
+  const subfoldersHtml = sortedChildren.map(name => {
+    const subPath = parentSubPath ? `${parentSubPath}/${name}` : name;
+    return renderNestedExternalSubfolder(name, subPath, node.children[name], externalRootPath, currentFilePath, isExternalFile, depth);
+  }).join('');
+
+  return filesHtml + subfoldersHtml;
 }
 
 function renderExternalFolderGroup(folderPath, groupedFiles, currentFilePath, isExternalFile) {
   const folderName = folderPath.split('/').pop() || folderPath;
   const folderId = `ext-folder-${folderPath.replace(/[^a-z0-9]/gi, '-')}`;
 
-  const allFiles = Object.values(groupedFiles).flat();
-  const isExpanded = allFiles.some(f => f.path === currentFilePath && isExternalFile);
-
-  const sortedSubfolders = Object.keys(groupedFiles).sort((a, b) => {
-    if (a === '.') return -1;
-    if (b === '.') return 1;
-    return a.localeCompare(b);
-  });
-
-  let contentHtml = '';
-  for (const subfolder of sortedSubfolders) {
-    const subfolderFiles = groupedFiles[subfolder];
-
-    if (subfolder === '.') {
-      subfolderFiles.sort((a, b) => a.name.localeCompare(b.name));
-      contentHtml += subfolderFiles.map(file => {
-        const isActive = file.path === currentFilePath && isExternalFile;
-        return renderExternalFileItem(file, isActive);
-      }).join('');
-    } else {
-      contentHtml += renderExternalSubfolder(subfolder, subfolderFiles, folderPath, currentFilePath, isExternalFile);
-    }
-  }
+  const tree = buildSubfolderTree(groupedFiles);
+  const isExpanded = treeContainsActiveFile(tree, currentFilePath, isExternalFile);
+  const contentHtml = renderExternalTreeContent(tree, folderPath, '', currentFilePath, isExternalFile, 0);
 
   const removeBtn = `<button class="action-btn remove-external-btn" data-external-path="${folderPath}" title="Xoa khoi danh sach">${CLOSE_ICON}</button>`;
 

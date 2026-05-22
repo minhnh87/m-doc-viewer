@@ -11,6 +11,7 @@ import { apiFetch } from './modules/api.js';
 import { navigateToFile } from './modules/navigation.js';
 import { initResize } from './modules/resize.js';
 import { initZoom } from './modules/zoom.js';
+import { initTheme } from './modules/theme.js';
 
 // Initialize state check
 const state = getState();
@@ -27,6 +28,9 @@ initResize();
 // Initialize content zoom
 initZoom();
 
+// Initialize theme (light/dark)
+initTheme();
+
 // Toggle sidebars on mobile
 const toggleFileTreeButton = document.getElementById('toggle-file-tree');
 const toggleOutlineButton = document.getElementById('toggle-outline');
@@ -35,10 +39,18 @@ const closeOutlineButton = document.getElementById('close-outline');
 const fileTreeSidebar = document.querySelector('.file-tree-sidebar');
 const outlineSidebar = document.querySelector('.outline-sidebar');
 
-toggleFileTreeButton.addEventListener('click', () => {
-  fileTreeSidebar.classList.toggle('open');
-  outlineSidebar.classList.remove('open');
-});
+const OVERLAY_BREAKPOINT = 1024;
+
+function toggleLeftPanel() {
+  if (window.innerWidth <= OVERLAY_BREAKPOINT) {
+    fileTreeSidebar.classList.toggle('open');
+    outlineSidebar.classList.remove('open');
+  } else {
+    document.body.classList.toggle('left-panel-hidden');
+  }
+}
+
+toggleFileTreeButton.addEventListener('click', toggleLeftPanel);
 
 toggleOutlineButton.addEventListener('click', () => {
   outlineSidebar.classList.toggle('open');
@@ -51,6 +63,15 @@ closeFileTreeButton.addEventListener('click', () => {
 
 closeOutlineButton.addEventListener('click', () => {
   outlineSidebar.classList.remove('open');
+});
+
+// Close left panel overlay when clicking outside it
+document.addEventListener('click', (e) => {
+  if (!fileTreeSidebar.classList.contains('open')) return;
+  if (fileTreeSidebar.contains(e.target)) return;
+  if (toggleFileTreeButton.contains(e.target)) return;
+  if (e.target.closest('.confirm-overlay')) return;
+  fileTreeSidebar.classList.remove('open');
 });
 
 // Create folder button handler
@@ -89,10 +110,10 @@ setupKeyboardNavigation();
 // Setup search listeners
 setupSearchListeners();
 
-// Setup hotkeys (F, L, P)
+// Setup hotkeys (F, L, P, A)
 const searchPanel = document.getElementById('search-panel');
 const searchInput = document.getElementById('search-input');
-setupHotkeys(searchPanel, searchInput);
+setupHotkeys(searchPanel, searchInput, toggleLeftPanel);
 
 // Try to restore search state, or load file tree if no search was active
 const hasRestoredSearch = restoreSearchState();

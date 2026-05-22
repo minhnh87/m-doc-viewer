@@ -56,7 +56,7 @@ export function setupKeyboardNavigation() {
   });
 }
 
-export function setupHotkeys(searchPanel, searchInput) {
+export function setupHotkeys(searchPanel, searchInput, toggleLeftPanel) {
   document.addEventListener('keydown', (e) => {
     // Ignore if typing in input/textarea
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
@@ -83,6 +83,12 @@ export function setupHotkeys(searchPanel, searchInput) {
           console.error('Error getting latest plan:', error);
           alert('Loi: ' + error.message);
         });
+    } else if (e.key === 'a' || e.key === 'A') {
+      // A => toggle left file-tree panel
+      if (typeof toggleLeftPanel === 'function') {
+        e.preventDefault();
+        toggleLeftPanel();
+      }
     }
   });
 }

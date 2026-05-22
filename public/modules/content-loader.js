@@ -59,7 +59,7 @@ export async function loadDrawio() {
     diagramContainer.style.border = '1px solid var(--border-primary)';
     diagramContainer.style.borderRadius = '8px';
     diagramContainer.style.overflow = 'hidden';
-    diagramContainer.style.background = '#fff';
+    diagramContainer.style.background = 'var(--diagram-bg)';
 
     diagramContainer.setAttribute('data-mxgraph', JSON.stringify({
       highlight: '#0000ff',
@@ -115,7 +115,7 @@ export async function loadMermaid() {
     diagramContainer.className = 'mermaid-container';
     diagramContainer.style.maxWidth = '100%';
     diagramContainer.style.padding = '20px';
-    diagramContainer.style.background = '#fff';
+    diagramContainer.style.background = 'var(--diagram-bg)';
     diagramContainer.style.borderRadius = '8px';
     diagramContainer.style.border = '1px solid var(--border-primary)';
     diagramContainer.style.overflow = 'auto';

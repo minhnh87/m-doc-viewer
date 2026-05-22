@@ -8,7 +8,25 @@ const DEFAULT_ZOOM = 1.0;
 
 let currentZoom = DEFAULT_ZOOM;
 
+function loadFromUrl() {
+  try {
+    const raw = new URLSearchParams(window.location.search).get('zoom');
+    if (raw === null) return null;
+    const n = parseFloat(raw);
+    if (!Number.isFinite(n)) return null;
+    const z = n > 5 ? n / 100 : n;
+    return z >= MIN_ZOOM && z <= MAX_ZOOM ? Math.round(z * 10) / 10 : null;
+  } catch {
+    return null;
+  }
+}
+
 function load() {
+  const fromUrl = loadFromUrl();
+  if (fromUrl !== null) {
+    save(fromUrl);
+    return fromUrl;
+  }
   const v = parseFloat(localStorage.getItem(STORAGE_KEY));
   return Number.isFinite(v) && v >= MIN_ZOOM && v <= MAX_ZOOM ? v : DEFAULT_ZOOM;
 }
@@ -42,20 +60,31 @@ export function initZoom() {
   if (levelBtn) levelBtn.addEventListener('click', () => setZoom(DEFAULT_ZOOM));
 
   document.addEventListener('keydown', (e) => {
-    if (!(e.ctrlKey || e.metaKey)) return;
     const target = e.target;
     if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
       return;
     }
-    if (e.key === '=' || e.key === '+') {
+
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === '=' || e.key === '+') {
+        e.preventDefault();
+        setZoom(currentZoom + STEP);
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        setZoom(currentZoom - STEP);
+      } else if (e.key === '0') {
+        e.preventDefault();
+        setZoom(DEFAULT_ZOOM);
+      }
+      return;
+    }
+
+    if (e.key === 'z') {
       e.preventDefault();
       setZoom(currentZoom + STEP);
-    } else if (e.key === '-' || e.key === '_') {
+    } else if (e.key === 'Z') {
       e.preventDefault();
       setZoom(currentZoom - STEP);
-    } else if (e.key === '0') {
-      e.preventDefault();
-      setZoom(DEFAULT_ZOOM);
     }
   });
 }

@@ -6,7 +6,7 @@ function escapeHTML(str) {
   return div.innerHTML;
 }
 
-function buildStaticHTML(title, markdownContent, outlineContent, cssContent) {
+function buildStaticHTML(title, markdownContent, outlineContent, cssContent, theme) {
   const layoutOverride = `
     /* Override for 2-column layout (no file tree) */
     .file-tree-sidebar,
@@ -162,7 +162,7 @@ function buildStaticHTML(title, markdownContent, outlineContent, cssContent) {
   `;
 
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="${theme === 'dark' ? 'dark' : 'light'}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -224,8 +224,9 @@ export async function exportToStaticHTML() {
 
     const cssResponse = await fetch('/styles.css');
     const cssContent = await cssResponse.text();
+    const theme = document.documentElement.getAttribute('data-theme') || 'light';
 
-    const staticHTML = buildStaticHTML(title, markdownContent, outlineContent, cssContent);
+    const staticHTML = buildStaticHTML(title, markdownContent, outlineContent, cssContent, theme);
 
     const blob = new Blob([staticHTML], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
