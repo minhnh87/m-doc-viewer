@@ -35,7 +35,7 @@
   --md-link-active: blue;
   --md-pre-bg: #ECFAE5;
   --md-pre-fg: #332D56;
-  --md-code-bg: rgba(175, 184, 193, 0.2);
+  --md-code-bg: rgb(246 186 140 / 20%);
   --md-search-highlight-bg: #fff3bf;
   --diagram-bg: #ffffff;
 
@@ -197,6 +197,83 @@ body.resizing * {
   z-index: 10;
   gap: 8px;
 }
+
+/* #workspace-tabs is a shadow-DOM host — visual styles live inside the
+ * shadow root (see public/modules/workspace-tabs.js). Note: do NOT apply
+ * :empty hiding here — shadow children are invisible to :empty so the host
+ * always matches it. */
+#workspace-tabs { display: block; min-height: 38px; }
+
+/* Workspace modal (WKWebView-safe) */
+#ws-modal-root:empty { display: none; }
+.ws-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+.ws-modal {
+  background: var(--bg-primary);
+  color: var(--text-primary, inherit);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 20px;
+  min-width: 320px;
+  max-width: 90vw;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ws-modal-title,
+.ws-modal-message {
+  font-size: 14px;
+  font-weight: 600;
+}
+.ws-modal-input {
+  padding: 8px 10px;
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  background: var(--bg-secondary);
+  color: var(--text-primary, inherit);
+  font: inherit;
+  font-size: 13px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.ws-modal-input:focus { outline: 2px solid #0969da; outline-offset: -2px; }
+.ws-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.ws-modal-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  background: var(--bg-secondary);
+  color: var(--text-primary, inherit);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.ws-modal-btn:hover { background: var(--bg-hover); }
+.ws-modal-ok {
+  background: #0969da;
+  color: #fff;
+  border-color: #0969da;
+}
+.ws-modal-ok:hover { background: #0860c7; }
+.ws-modal-danger {
+  background: #cf222e;
+  border-color: #cf222e;
+}
+.ws-modal-danger:hover { background: #b21724; }
+
+/* (workspace tab styles moved into Shadow DOM — see modules/workspace-tabs.js) */
 
 .file-tree-header-row {
   display: flex;

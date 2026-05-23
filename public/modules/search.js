@@ -1,6 +1,6 @@
 // Search functionality
 
-import { getExternalFolders } from './storage.js';
+import { getActiveWorkspaceFolders } from './workspaces.js';
 import { getFileIcon } from './icons.js';
 import { loadFileTree } from './file-tree.js';
 import { getState } from './state.js';
@@ -163,7 +163,7 @@ export async function performSearch(query) {
     let url;
 
     if (scope === 'all') {
-      const externalFolders = getExternalFolders();
+      const externalFolders = getActiveWorkspaceFolders();
       url = `/api/search?query=${encodeURIComponent(query)}&scope=all&externalFolders=${encodeURIComponent(JSON.stringify(externalFolders))}`;
     } else {
       const externalParam = isExternalFile ? '&external=true' : '';

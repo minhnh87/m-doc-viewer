@@ -1,7 +1,8 @@
 // Dialog modules: Confirm, Input, Move, AddFolder dialogs
 
 import { WARNING_ICON, CLOSE_ICON } from './icons.js';
-import { addExternalFolder } from './storage.js';
+import { addFolderToWorkspace, getActiveWorkspaceId } from './workspaces.js';
+import { addFilterFolder } from './filter-folders.js';
 import { getState } from './state.js';
 import { apiFetch } from './api.js';
 import { loadFileTree, saveTreeState, restoreTreeState } from './file-tree.js';
@@ -392,7 +393,12 @@ export async function executeAddFolder() {
       return;
     }
 
-    addExternalFolder(folderPath);
+    const filterKey = getState().folderFilter;
+    if (filterKey) {
+      addFilterFolder(filterKey, folderPath);
+    } else {
+      addFolderToWorkspace(getActiveWorkspaceId(), folderPath);
+    }
     hideAddFolderDialog();
     const treeState = saveTreeState();
     await loadFileTree();

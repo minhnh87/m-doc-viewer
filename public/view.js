@@ -3,6 +3,7 @@
 import { getState } from './modules/state.js';
 import { initDialogs, showInputDialog, showAddFolderDialog } from './modules/dialogs.js';
 import { loadFileTree } from './modules/file-tree.js';
+import { renderWorkspaceTabs } from './modules/workspace-tabs.js';
 import { loadContent } from './modules/content-loader.js';
 import { setupKeyboardNavigation, setupHotkeys } from './modules/keyboard.js';
 import { exportToStaticHTML } from './modules/export.js';
@@ -114,6 +115,9 @@ setupSearchListeners();
 const searchPanel = document.getElementById('search-panel');
 const searchInput = document.getElementById('search-input');
 setupHotkeys(searchPanel, searchInput, toggleLeftPanel);
+
+// Render workspace tabs before loading file tree
+renderWorkspaceTabs();
 
 // Try to restore search state, or load file tree if no search was active
 const hasRestoredSearch = restoreSearchState();

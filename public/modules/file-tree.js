@@ -1,7 +1,12 @@
 // File tree loading and rendering
 
 import { getFileIcon, TRASH_ICON, PENCIL_ICON, MOVE_ICON, CLOSE_ICON, FOLDER_ICON, CHEVRON_ICON } from './icons.js';
-import { getExternalFolders, removeExternalFolder } from './storage.js';
+import {
+  getActiveWorkspaceFolders,
+  getActiveWorkspaceId,
+  removeFolderFromWorkspace,
+} from './workspaces.js';
+import { getFilterFolders, removeFilterFolder } from './filter-folders.js';
 import { showConfirmDialog, showInputDialog, showMoveDialog } from './dialogs.js';
 import { getState } from './state.js';
 import { apiFetch } from './api.js';
@@ -60,9 +65,10 @@ function renderActionButtons(file) {
   `;
 }
 
-function renderFolderHeader(folderId, folderName, { folderPath, extraClass = '', titleAttr = '', actions = '' } = {}) {
+function renderFolderHeader(folderId, folderName, { folderPath, extraClass = '', titleAttr = '', actions = '', headerStyle = '' } = {}) {
+  const styleAttr = headerStyle ? ` style="${headerStyle}"` : '';
   return `
-    <div class="tree-folder-header ${extraClass}" data-folder="${folderId}"${folderPath !== undefined ? ` data-folder-path="${folderPath}"` : ''}>
+    <div class="tree-folder-header ${extraClass}" data-folder="${folderId}"${folderPath !== undefined ? ` data-folder-path="${folderPath}"` : ''}${styleAttr}>
       ${FOLDER_ICON}
       ${CHEVRON_ICON}
       <span class="tree-folder-name"${titleAttr ? ` title="${titleAttr}"` : ''}>${folderName}</span>
@@ -96,30 +102,38 @@ function buildSubfolderTree(groupedFiles) {
   return root;
 }
 
-function treeContainsActiveFile(node, currentFilePath, isExternalFile) {
-  if (!isExternalFile || !currentFilePath) return false;
-  if (node.files.some(f => f.path === currentFilePath)) return true;
+function treeContainsActiveFile(node, matches) {
+  if (node.files.some(matches)) return true;
   for (const child of Object.values(node.children)) {
-    if (treeContainsActiveFile(child, currentFilePath, isExternalFile)) return true;
+    if (treeContainsActiveFile(child, matches)) return true;
   }
   return false;
+}
+
+function makeExternalMatcher(currentFilePath, isExternalFile) {
+  if (!isExternalFile || !currentFilePath) return () => false;
+  return f => f.path === currentFilePath;
+}
+
+function makeProjectMatcher(currentFilePath, isExternalFile) {
+  if (isExternalFile || !currentFilePath) return () => false;
+  return f => f.path === currentFilePath;
 }
 
 function renderNestedExternalSubfolder(name, subPath, subtree, externalRootPath, currentFilePath, isExternalFile, depth) {
   const rootSlug = externalRootPath.replace(/[^a-z0-9]/gi, '-');
   const subSlug = subPath.replace(/[^a-z0-9]/gi, '-');
   const subFolderId = `ext-subfolder-${rootSlug}-${subSlug}`;
-  const isExpanded = treeContainsActiveFile(subtree, currentFilePath, isExternalFile);
+  const isExpanded = treeContainsActiveFile(subtree, makeExternalMatcher(currentFilePath, isExternalFile));
   const headerPad = BASE_SUBFOLDER_PAD + depth * NEST_INDENT;
   const contentHtml = renderExternalTreeContent(subtree, externalRootPath, subPath, currentFilePath, isExternalFile, depth + 1);
 
   return `
     <div class="tree-folder external-subfolder ${isExpanded ? 'expanded' : ''}">
-      <div class="tree-folder-header" data-folder="${subFolderId}" style="padding-left: ${headerPad}px">
-        ${FOLDER_ICON}
-        ${CHEVRON_ICON}
-        <span class="tree-folder-name" title="${subPath}">${name}</span>
-      </div>
+      ${renderFolderHeader(subFolderId, name, {
+        titleAttr: subPath,
+        headerStyle: `padding-left: ${headerPad}px`,
+      })}
       <div class="tree-folder-content" id="${subFolderId}">
         ${contentHtml}
       </div>
@@ -148,7 +162,7 @@ function renderExternalFolderGroup(folderPath, groupedFiles, currentFilePath, is
   const folderId = `ext-folder-${folderPath.replace(/[^a-z0-9]/gi, '-')}`;
 
   const tree = buildSubfolderTree(groupedFiles);
-  const isExpanded = treeContainsActiveFile(tree, currentFilePath, isExternalFile);
+  const isExpanded = treeContainsActiveFile(tree, makeExternalMatcher(currentFilePath, isExternalFile));
   const contentHtml = renderExternalTreeContent(tree, folderPath, '', currentFilePath, isExternalFile, 0);
 
   const removeBtn = `<button class="action-btn remove-external-btn" data-external-path="${folderPath}" title="Xoa khoi danh sach">${CLOSE_ICON}</button>`;
@@ -156,6 +170,83 @@ function renderExternalFolderGroup(folderPath, groupedFiles, currentFilePath, is
   return `
     <div class="tree-folder external-folder ${isExpanded ? 'expanded' : ''}">
       ${renderFolderHeader(folderId, folderName, { folderPath, extraClass: 'external-folder-header', titleAttr: folderPath, actions: removeBtn })}
+      <div class="tree-folder-content" id="${folderId}">
+        ${contentHtml}
+      </div>
+    </div>
+  `;
+}
+
+function renderProjectFileItem(file, isActive, depth = 0) {
+  const padLeft = BASE_FILE_PAD + depth * NEST_INDENT;
+  const linkStyle = depth > 0 ? ` style="padding-left: ${padLeft}px"` : '';
+  return `
+    <div class="tree-file ${isActive ? 'active' : ''}" data-path="${file.path}">
+      <a href="#" class="tree-file-link" title="${file.name}" data-nav-path="${file.path}" data-nav-external="false"${linkStyle}>
+        ${getFileIcon(file.name)}
+        <span class="tree-file-name">${file.name}</span>
+      </a>
+      ${renderActionButtons(file)}
+    </div>
+  `;
+}
+
+function renderProjectFolderActions(name, fullSubPath) {
+  return `
+    <button class="action-btn rename-btn" data-rename-type="folder" data-rename-path="${fullSubPath}" data-rename-name="${name}" title="Doi ten">${PENCIL_ICON}</button>
+    <button class="action-btn delete-btn" data-delete-type="folder" data-delete-path="${fullSubPath}" data-delete-name="${name}" title="Xoa thu muc">${TRASH_ICON}</button>
+  `;
+}
+
+function renderProjectTreeContent(node, parentSubPath, currentFilePath, isExternalFile, depth) {
+  const sortedFiles = [...node.files].sort((a, b) => a.name.localeCompare(b.name));
+  const filesHtml = sortedFiles.map(file => {
+    const isActive = file.path === currentFilePath && !isExternalFile;
+    return renderProjectFileItem(file, isActive, depth);
+  }).join('');
+
+  const sortedChildren = Object.keys(node.children).sort((a, b) => a.localeCompare(b));
+  const subfoldersHtml = sortedChildren.map(name => {
+    const subPath = parentSubPath ? `${parentSubPath}/${name}` : name;
+    return renderNestedProjectSubfolder(name, subPath, node.children[name], currentFilePath, isExternalFile, depth);
+  }).join('');
+
+  return filesHtml + subfoldersHtml;
+}
+
+function renderNestedProjectSubfolder(name, subPath, subtree, currentFilePath, isExternalFile, depth) {
+  const folderId = `folder-${subPath.replace(/[^a-z0-9]/gi, '-')}`;
+  const isExpanded = treeContainsActiveFile(subtree, makeProjectMatcher(currentFilePath, isExternalFile));
+  const headerPad = BASE_SUBFOLDER_PAD + depth * NEST_INDENT;
+  const contentHtml = renderProjectTreeContent(subtree, subPath, currentFilePath, isExternalFile, depth + 1);
+
+  return `
+    <div class="tree-folder ${isExpanded ? 'expanded' : ''}">
+      ${renderFolderHeader(folderId, name, {
+        folderPath: subPath,
+        titleAttr: subPath,
+        actions: renderProjectFolderActions(name, subPath),
+        headerStyle: `padding-left: ${headerPad}px`,
+      })}
+      <div class="tree-folder-content" id="${folderId}">
+        ${contentHtml}
+      </div>
+    </div>
+  `;
+}
+
+function renderProjectFolderGroup(name, fullSubPath, node, currentFilePath, isExternalFile) {
+  const folderId = `folder-${fullSubPath.replace(/[^a-z0-9]/gi, '-')}`;
+  const isExpanded = treeContainsActiveFile(node, makeProjectMatcher(currentFilePath, isExternalFile));
+  const contentHtml = renderProjectTreeContent(node, fullSubPath, currentFilePath, isExternalFile, 0);
+
+  return `
+    <div class="tree-folder ${isExpanded ? 'expanded' : ''}">
+      ${renderFolderHeader(folderId, name, {
+        folderPath: fullSubPath,
+        titleAttr: fullSubPath,
+        actions: renderProjectFolderActions(name, fullSubPath),
+      })}
       <div class="tree-folder-content" id="${folderId}">
         ${contentHtml}
       </div>
@@ -298,7 +389,14 @@ function attachTreeEventHandlers(fileTreeNav) {
       e.preventDefault();
       e.stopPropagation();
       const path = btn.dataset.externalPath;
-      removeExternalFolder(path);
+      const filterKey = getState().folderFilter;
+      if (filterKey) {
+        // Removing the filter folder itself is a no-op — it's still pinned by ?f=.
+        if (path === filterKey) return;
+        removeFilterFolder(filterKey, path);
+      } else {
+        removeFolderFromWorkspace(getActiveWorkspaceId(), path);
+      }
       loadFileTree();
     });
   });
@@ -319,7 +417,7 @@ export async function loadFileTree() {
   try {
     const files = await apiFetch('/api/files');
 
-    const externalFolders = getExternalFolders();
+    const externalFolders = getActiveWorkspaceFolders();
     let externalFiles = {};
 
     if (externalFolders.length > 0) {
@@ -346,11 +444,19 @@ export async function loadFileTree() {
       .map(folderPath => renderExternalFolderGroup(folderPath, externalFiles[folderPath], currentFilePath, isExternalFile))
       .join('');
 
-    const projectHtml = Object.keys(files).sort()
-      .map(folder => renderFolderGroup(folder, files[folder], currentFilePath, isExternalFile))
+    const hasRoot = Object.prototype.hasOwnProperty.call(files, 'Root');
+    const { Root: rootFiles = [], ...nestedFolders } = files;
+
+    const rootHtml = hasRoot
+      ? renderFolderGroup('Root', rootFiles, currentFilePath, isExternalFile)
+      : '';
+
+    const projectTree = buildSubfolderTree(nestedFolders);
+    const projectHtml = Object.keys(projectTree.children).sort((a, b) => a.localeCompare(b))
+      .map(name => renderProjectFolderGroup(name, name, projectTree.children[name], currentFilePath, isExternalFile))
       .join('');
 
-    fileTreeNav.innerHTML = externalHtml + projectHtml;
+    fileTreeNav.innerHTML = externalHtml + rootHtml + projectHtml;
 
     attachTreeEventHandlers(fileTreeNav);
   } catch (error) {
@@ -360,22 +466,31 @@ export async function loadFileTree() {
 
 async function loadFilteredFileTree(folderPath, currentFilePath, isExternalFile) {
   try {
+    const extraFolders = getFilterFolders(folderPath).filter(p => p !== folderPath);
+    const requestedPaths = [folderPath, ...extraFolders];
+
     const extResponse = await apiFetch('/api/external-files', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paths: [folderPath] })
+      body: JSON.stringify({ paths: requestedPaths })
     });
-
-    const folderFiles = extResponse[folderPath] || {};
 
     const fileTreeNav = document.getElementById('file-tree');
     const loadingTree = fileTreeNav.querySelector('.loading-tree');
     if (loadingTree) loadingTree.remove();
 
     const lastTalkHtml = renderLastTalkSection(LAST_TALK_FILES, currentFilePath, isExternalFile);
-    const folderHtml = renderExternalFolderGroup(folderPath, folderFiles, currentFilePath, isExternalFile);
+    const filterFolderHtml = renderExternalFolderGroup(
+      folderPath,
+      extResponse[folderPath] || {},
+      currentFilePath,
+      isExternalFile,
+    );
+    const extraFoldersHtml = extraFolders
+      .map(p => renderExternalFolderGroup(p, extResponse[p] || {}, currentFilePath, isExternalFile))
+      .join('');
 
-    fileTreeNav.innerHTML = lastTalkHtml + folderHtml;
+    fileTreeNav.innerHTML = lastTalkHtml + filterFolderHtml + extraFoldersHtml;
 
     attachTreeEventHandlers(fileTreeNav);
   } catch (error) {
