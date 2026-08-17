@@ -11,7 +11,7 @@ window.APP_CONFIG = {
   API_KEY: '1acad1323344b15937de23f02afc4e964f77cf76c9c9f20b',
 
   // This app's notes root (absolute — the browser can't expand '~').
-  PROJECT_ROOT: '/Users/minh/www/git/personal/research',
+  PROJECT_ROOT: '/Users/minh/www/git/personal/tools/m-md-viewer',
 
   // Directories hidden from the project file tree.
   PROJECT_EXCLUDE: ['node_modules', '.git', 'public', '.ipam', '.playwright-mcp'],

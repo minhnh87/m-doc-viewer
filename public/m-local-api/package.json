@@ -1,0 +1,16 @@
+{
+  "name": "m-local-api",
+  "version": "1.0.0",
+  "description": "Generic, path-based local file API (read / scan / search / mutate) for building local-first apps. Binds 127.0.0.1, CORS *.",
+  "type": "module",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node src/main.js",
+    "dev": "node --watch src/main.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  }
+}
