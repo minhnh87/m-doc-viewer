@@ -13,6 +13,8 @@ import { navigateToFile } from './modules/navigation.js';
 import { initResize } from './modules/resize.js';
 import { initZoom } from './modules/zoom.js';
 import { initTheme } from './modules/theme.js';
+import { initQuickOpen, showQuickOpen } from './modules/quick-open.js';
+import { initEditor } from './modules/editor.js';
 
 // Initialize state check
 const state = getState();
@@ -104,6 +106,9 @@ document.getElementById('quick-latest-plan-btn').addEventListener('click', async
 // Export button handler
 document.getElementById('export-html-btn').addEventListener('click', exportToStaticHTML);
 
+// Edit mode (pencil button, Ctrl+S save, Esc cancel)
+initEditor({ afterSave: loadContent });
+
 // Load content and setup keyboard navigation
 loadContent();
 setupKeyboardNavigation();
@@ -116,14 +121,22 @@ const searchPanel = document.getElementById('search-panel');
 const searchInput = document.getElementById('search-input');
 setupHotkeys(searchPanel, searchInput, toggleLeftPanel);
 
+// Cmd/Ctrl+P quick file picker (works even when inputs are focused)
+initQuickOpen();
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && (e.key === 'p' || e.key === 'P') && !e.shiftKey && !e.altKey) {
+    e.preventDefault();
+    showQuickOpen();
+  }
+});
+
 // Render workspace tabs before loading file tree
 renderWorkspaceTabs();
 
-// Try to restore search state, or load file tree if no search was active
-const hasRestoredSearch = restoreSearchState();
-if (!hasRestoredSearch) {
-  loadFileTree();
-}
+// Restore saved search query/scope into the (hidden) panel, but always show
+// the file tree on load — results reappear when the panel is opened (🔍 or F).
+restoreSearchState();
+loadFileTree();
 
 // Handle browser back/forward navigation
 window.addEventListener('popstate', () => {

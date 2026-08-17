@@ -4,6 +4,9 @@ import { generateOutline, renderOutline } from './outline.js';
 import { setupScrollSpy } from './scroll-spy.js';
 import { getState } from './state.js';
 import { apiFetch } from './api.js';
+import { updateFilePathBar } from './file-path-bar.js';
+import { scrollToSearchMatch } from './scroll-to-match.js';
+import { updateEditButton } from './editor.js';
 
 // Scope every <style> tag inside container so its rules only apply
 // inside .markdown-body. Markdown content sometimes ships its own <style>
@@ -87,7 +90,7 @@ function readBlock(src, openBraceIdx) {
   return { body: src.slice(start, i), end: i + 1 };
 }
 
-export async function loadMarkdown() {
+export async function loadMarkdown(scrollTo = null) {
   const state = getState();
   const currentFilePath = state.currentFilePath;
   const isExternalFile = state.isExternalFile;
@@ -111,6 +114,13 @@ export async function loadMarkdown() {
 
     renderOutline(outline);
     setupScrollSpy(outline);
+
+    if (scrollTo && scrollTo.query && scrollTo.line) {
+      // Wait a frame so layout is done before measuring scroll position.
+      requestAnimationFrame(() => {
+        scrollToSearchMatch(contentDiv, data.content, scrollTo.line, scrollTo.query);
+      });
+    }
 
   } catch (error) {
     console.error('Error loading markdown:', error);
@@ -228,9 +238,12 @@ export async function loadMermaid() {
   }
 }
 
-export function loadContent() {
+export function loadContent(scrollTo = null) {
   const state = getState();
   const currentFilePath = state.currentFilePath;
+
+  updateFilePathBar(currentFilePath, state.isExternalFile);
+  updateEditButton(currentFilePath);
 
   if (!currentFilePath) return;
 
@@ -239,6 +252,6 @@ export function loadContent() {
   } else if (currentFilePath.endsWith('.mermaid') || currentFilePath.endsWith('.mmd')) {
     loadMermaid();
   } else {
-    loadMarkdown();
+    loadMarkdown(scrollTo);
   }
 }

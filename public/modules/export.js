@@ -1,5 +1,10 @@
 // Export to static HTML
 
+// styles.css is inlined at build time (esbuild `--loader:.css=text`). This is
+// the reliable way to obtain the CSS on file://, where fetch() is blocked and
+// stylesheet.cssRules throws SecurityError for local sheets.
+import STYLES_CSS from '../styles.css';
+
 function escapeHTML(str) {
   const div = document.createElement('div');
   div.textContent = str;
@@ -216,14 +221,35 @@ ${scrollSpyJS}
 </html>`;
 }
 
+// Collect the page's CSS from already-loaded stylesheets. Avoids fetch(), which
+// is blocked for local files on file:// . Falls back to inline <style> tags if a
+// stylesheet's rules are cross-origin / unreadable.
+function collectCss() {
+  let css = '';
+  for (const sheet of Array.from(document.styleSheets)) {
+    try {
+      const rules = sheet.cssRules;
+      if (!rules) continue;
+      for (const rule of Array.from(rules)) css += `${rule.cssText}\n`;
+    } catch {
+      // cross-origin (e.g. CDN) or file:// -blocked sheet — skip it.
+    }
+  }
+  if (!css) {
+    for (const styleEl of Array.from(document.querySelectorAll('style'))) {
+      css += `${styleEl.textContent || ''}\n`;
+    }
+  }
+  return css;
+}
+
 export async function exportToStaticHTML() {
   try {
     const title = document.getElementById('file-title').textContent || 'Exported Document';
     const markdownContent = document.getElementById('markdown-content').innerHTML;
     const outlineContent = document.getElementById('outline').innerHTML;
 
-    const cssResponse = await fetch('/styles.css');
-    const cssContent = await cssResponse.text();
+    const cssContent = STYLES_CSS || collectCss();
     const theme = document.documentElement.getAttribute('data-theme') || 'light';
 
     const staticHTML = buildStaticHTML(title, markdownContent, outlineContent, cssContent, theme);

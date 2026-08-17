@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Conversations</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <!-- Apply theme early to prevent FOUC (same guard as the markdown viewer) -->
+  <script>
+    (function () {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var urlTheme = params.get('theme');
+        var theme;
+        if (urlTheme === 'dark' || urlTheme === 'light') {
+          theme = urlTheme;
+          localStorage.setItem('theme', theme);
+        } else {
+          theme = localStorage.getItem('theme') || 'light';
+        }
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+  <!-- App config (outside the bundle; edit by hand, no rebuild needed) -->
+  <script src="config.js"></script>
+  <!-- Shared theme tokens + conversation-specific layout -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="claude.css">
+  <!-- Markdown renderer -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@11/marked.min.js"></script>
+  <!-- Syntax highlighting (theme sheets toggled by data-theme in view.js) -->
+  <link id="hljs-light" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github.min.css">
+  <link id="hljs-dark" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/github-dark.min.css" disabled>
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/highlight.min.js"></script>
+</head>
+<body>
+  <div class="claude-app">
+    <header class="claude-header">
+      <a class="claude-back" href="index.html" title="Back to markdown viewer">
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h8.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06Z"/></svg>
+        <span>Files</span>
+      </a>
+      <h1 class="claude-title">Claude Conversations</h1>
+      <div class="claude-header-actions">
+        <button id="palette-btn" class="claude-btn" title="Command palette (⌘K)">⌘K</button>
+        <label class="claude-toggle" title="Show hidden events (attachments, system, …)">
+          <input type="checkbox" id="show-hidden-toggle">
+          <span>Show hidden</span>
+        </label>
+        <button id="claude-theme-toggle" class="claude-btn claude-icon-btn" title="Toggle dark/light theme" aria-label="Toggle theme">
+          <svg class="theme-icon-light" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 12.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0Zm0 13a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13ZM16 8a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Z"/></svg>
+          <svg class="theme-icon-dark" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M9.598 1.591a.749.749 0 0 1 .785-.175 7.001 7.001 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786Z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="claude-layout">
+      <!-- Left: project switcher + session list -->
+      <aside class="claude-sidebar claude-sidebar-left" id="claude-sidebar-left">
+        <div class="project-switcher" id="project-switcher"></div>
+        <div class="favourites" id="favourites"></div>
+        <div class="session-list-header">
+          <span class="session-list-label">Sessions</span>
+          <button id="marked-sessions-btn" class="claude-btn session-filter-btn" title="Show only marked sessions" aria-pressed="false">⚑ Marked</button>
+        </div>
+        <div class="session-list" id="session-list" role="listbox" aria-label="Sessions"></div>
+      </aside>
+
+      <!-- Center: message stream -->
+      <main class="claude-main" id="claude-main">
+        <div class="claude-banners" id="claude-banners"></div>
+        <div class="load-progress" id="load-progress" hidden>
+          <div class="load-progress-bar"><span id="load-progress-fill"></span></div>
+          <div class="load-progress-label" id="load-progress-label"></div>
+        </div>
+        <div class="message-stream" id="message-stream" tabindex="-1">
+          <div class="stream-placeholder" id="stream-placeholder">Select a session to view the conversation.</div>
+        </div>
+      </main>
+
+      <!-- Right: metadata + outline -->
+      <aside class="claude-sidebar claude-sidebar-right" id="claude-sidebar-right">
+        <div class="metadata-panel" id="metadata-panel"></div>
+        <nav class="outline-panel" id="outline-panel" aria-label="Prompt outline"></nav>
+      </aside>
+    </div>
+
+    <!-- Command palette overlay -->
+    <div class="palette-overlay" id="palette-overlay" hidden>
+      <div class="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+        <input type="text" id="palette-input" class="palette-input" placeholder="Switch project or jump to a prompt…" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="palette-results" aria-autocomplete="list" aria-label="Search projects, sessions, and prompts">
+        <ul class="palette-results" id="palette-results" role="listbox" aria-label="Commands"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bundled viewer (view.js + claude/**, IIFE) — runs on file:// -->
+  <script src="claude.bundle.js" defer></script>
+</body>
+</html>

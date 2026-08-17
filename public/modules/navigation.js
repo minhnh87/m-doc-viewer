@@ -2,6 +2,7 @@
 
 import { getState, updateState } from './state.js';
 import { loadContent } from './content-loader.js';
+import { confirmAndCloseEditor } from './editor.js';
 
 /**
  * Navigate to a file without full page reload.
@@ -10,9 +11,13 @@ import { loadContent } from './content-loader.js';
  * @param {boolean} isExternal - Whether the file is external
  * @param {object} [options] - Options
  * @param {boolean} [options.pushState=true] - Whether to push a new history entry (false for popstate handling)
+ * @param {{ line: number, query: string }} [options.scrollTo] - Scroll to this search match after the content renders
  */
-export function navigateToFile(filePath, isExternal = false, { pushState = true } = {}) {
+export function navigateToFile(filePath, isExternal = false, { pushState = true, scrollTo = null } = {}) {
   if (!filePath) return;
+
+  // Editing? Confirm discarding unsaved changes before leaving the file.
+  if (!confirmAndCloseEditor()) return;
 
   // Update shared state
   updateState({ currentFilePath: filePath, isExternalFile: isExternal });
@@ -32,7 +37,7 @@ export function navigateToFile(filePath, isExternal = false, { pushState = true 
   updateActiveHighlight(filePath, isExternal);
 
   // Reload only the content area
-  loadContent();
+  loadContent(scrollTo);
 }
 
 /**

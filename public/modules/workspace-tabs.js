@@ -29,12 +29,7 @@ function escapeHtml(str) {
 const TAB_STYLES = `
   :host {
     display: block;
-    background: var(--ws-bg, #ffffff);
-    border-bottom: 1px solid var(--ws-border, #d8dee4);
-  }
-  :host([data-theme="dark"]) {
-    background: var(--ws-bg, #282c34);
-    border-bottom-color: var(--ws-border, #3B4048);
+    background: transparent;
   }
   .root {
     --bg: #ffffff;
@@ -53,7 +48,7 @@ const TAB_STYLES = `
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: thin;
-    padding: 6px 16px;
+    padding: 2px 0;
     box-sizing: border-box;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   }

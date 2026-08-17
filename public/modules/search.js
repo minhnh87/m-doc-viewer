@@ -105,7 +105,7 @@ function renderSearchResults(data, query, scope = 'folder') {
     for (const match of result.matches) {
       const highlightedContent = highlightMatch(match.content, query);
       html += `
-        <a href="#" class="search-match-line" data-nav-path="${file.path}" data-nav-external="${file.isExternal}">
+        <a href="#" class="search-match-line" data-nav-path="${file.path}" data-nav-external="${file.isExternal}" data-nav-line="${match.line}">
           <span class="line-number">${match.line}:</span>${highlightedContent}
         </a>
       `;
@@ -136,7 +136,8 @@ function renderSearchResults(data, query, scope = 'folder') {
       e.preventDefault();
       const path = link.dataset.navPath;
       const isExternal = link.dataset.navExternal === 'true';
-      navigateToFile(path, isExternal);
+      const line = Number.parseInt(link.dataset.navLine, 10);
+      navigateToFile(path, isExternal, { scrollTo: { line, query } });
     });
   });
 }
@@ -212,6 +213,8 @@ export function clearSearch() {
   loadFileTree();
 }
 
+// Restores query/scope/clear-btn from sessionStorage WITHOUT rendering results —
+// results only appear when the search panel is opened (showSearchResults).
 export function restoreSearchState() {
   const savedState = sessionStorage.getItem('searchState');
 
@@ -234,8 +237,6 @@ export function restoreSearchState() {
         scopeRadio.checked = true;
       }
 
-      renderSearchResults(state.data, state.query, state.scope);
-
       return true;
     } catch (e) {
       console.error('Error restoring search state:', e);
@@ -243,6 +244,20 @@ export function restoreSearchState() {
     }
   }
   return false;
+}
+
+// Re-render cached results (data from the last search, not re-fetched).
+export function showSearchResults() {
+  if (!isSearchMode || !lastSearchData) return false;
+  renderSearchResults(lastSearchData, lastSearchQuery, lastSearchScope);
+  return true;
+}
+
+// Swap the left box back to the file tree; saved state is kept so
+// reopening the panel restores the results.
+export function hideSearchResults() {
+  if (!isSearchMode) return;
+  loadFileTree();
 }
 
 export function setupSearchListeners() {
@@ -288,10 +303,23 @@ export function setupSearchListeners() {
   if (toggleSearchBtn && searchPanel) {
     toggleSearchBtn.addEventListener('click', () => {
       const isVisible = searchPanel.style.display !== 'none';
-      searchPanel.style.display = isVisible ? 'none' : 'block';
-      if (!isVisible && searchInput) {
-        searchInput.focus();
+      if (isVisible) {
+        searchPanel.style.display = 'none';
+        hideSearchResults();
+      } else {
+        searchPanel.style.display = 'block';
+        showSearchResults();
+        if (searchInput) searchInput.focus();
       }
+    });
+  }
+
+  // Hide the search box AND its results — query + results stay saved; reopen via 🔍 or F.
+  const hideSearchBtn = document.getElementById('hide-search-btn');
+  if (hideSearchBtn && searchPanel) {
+    hideSearchBtn.addEventListener('click', () => {
+      searchPanel.style.display = 'none';
+      hideSearchResults();
     });
   }
 }

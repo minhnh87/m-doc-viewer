@@ -2,6 +2,9 @@
 
 import { apiFetch } from './api.js';
 import { navigateToFile } from './navigation.js';
+import { getState } from './state.js';
+import { enterEditMode } from './editor.js';
+import { showSearchResults } from './search.js';
 
 export function setupKeyboardNavigation() {
   document.addEventListener('keydown', (e) => {
@@ -64,14 +67,29 @@ export function setupHotkeys(searchPanel, searchInput, toggleLeftPanel) {
     }
 
     if (e.key === 'f' || e.key === 'F') {
-      // F => open search form, focus input
+      // F => open search form, restore saved results, focus input
       e.preventDefault();
       searchPanel.style.display = 'block';
+      showSearchResults();
       searchInput.focus();
     } else if (e.key === 'l' || e.key === 'L') {
       // L => open last_talk.md
+      //   - no ?f= active: open the global last_talk.md
+      //   - ?f={folder} active: open {folder}/.clsessions/last_talk.md
       e.preventDefault();
-      navigateToFile('last_talk.md', false);
+      const { folderFilter } = getState();
+      if (!folderFilter) {
+        navigateToFile('last_talk.md', false);
+        return;
+      }
+      apiFetch(`/api/last-talk?folder=${encodeURIComponent(folderFilter)}`)
+        .then(data => {
+          navigateToFile(data.path, true);
+        })
+        .catch(error => {
+          console.error('Error getting last_talk session:', error);
+          alert('Khong co file last_talk trong thu muc nay');
+        });
     } else if (e.key === 'p' || e.key === 'P') {
       // P => open latest plan file
       e.preventDefault();
@@ -83,12 +101,29 @@ export function setupHotkeys(searchPanel, searchInput, toggleLeftPanel) {
           console.error('Error getting latest plan:', error);
           alert('Loi: ' + error.message);
         });
+    } else if (e.key === 'e' || e.key === 'E') {
+      // E => edit current file (only .md; enterEditMode ignores the rest)
+      e.preventDefault();
+      enterEditMode();
     } else if (e.key === 'a' || e.key === 'A') {
       // A => toggle left file-tree panel
       if (typeof toggleLeftPanel === 'function') {
         e.preventDefault();
         toggleLeftPanel();
       }
+    } else if (e.key === 's' || e.key === 'S') {
+      // S => open latest .md session inside {f}/.clsessions/ (only when ?f= is active)
+      const { folderFilter } = getState();
+      if (!folderFilter) return;
+      e.preventDefault();
+      apiFetch(`/api/latest-session?folder=${encodeURIComponent(folderFilter)}`)
+        .then(data => {
+          navigateToFile(data.path, true);
+        })
+        .catch(error => {
+          console.error('Error getting latest session:', error);
+          alert('Loi: ' + error.message);
+        });
     }
   });
 }

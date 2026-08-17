@@ -1,6 +1,6 @@
 // Dialog modules: Confirm, Input, Move, AddFolder dialogs
 
-import { WARNING_ICON, CLOSE_ICON } from './icons.js';
+import { WARNING_ICON, CLOSE_ICON, FOLDER_ICON, CHEVRON_ICON } from './icons.js';
 import { addFolderToWorkspace, getActiveWorkspaceId } from './workspaces.js';
 import { addFilterFolder } from './filter-folders.js';
 import { getState } from './state.js';
@@ -213,6 +213,71 @@ export async function executeInputAction() {
 // ========================================
 let moveTarget = null;
 
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function isHiddenFolder(folderPath) {
+  return folderPath.split('/').some(segment => segment.startsWith('.'));
+}
+
+function buildMoveFolderTree(folderPaths) {
+  const root = { children: {} };
+  for (const folderPath of folderPaths) {
+    let node = root;
+    for (const segment of folderPath.split('/')) {
+      if (!node.children[segment]) {
+        node.children[segment] = { children: {} };
+      }
+      node = node.children[segment];
+    }
+  }
+  return root;
+}
+
+function renderMoveFolderNode(name, fullPath, node, currentFolder) {
+  const childNames = Object.keys(node.children).sort((a, b) => a.localeCompare(b));
+  const isCurrent = fullPath === currentFolder;
+  const optionClass = isCurrent ? 'folder-option folder-option-disabled' : 'folder-option';
+
+  const toggleHtml = childNames.length > 0
+    ? `<span class="folder-toggle" data-toggle>${CHEVRON_ICON}</span>`
+    : '<span class="folder-toggle folder-toggle-spacer"></span>';
+
+  const childrenHtml = childNames.length > 0
+    ? `<div class="folder-children">${childNames
+        .map(child => renderMoveFolderNode(child, `${fullPath}/${child}`, node.children[child], currentFolder))
+        .join('')}</div>`
+    : '';
+
+  return `<div class="folder-node">
+    <div class="${optionClass}" data-folder="${escapeHtml(fullPath)}">
+      ${toggleHtml}
+      ${FOLDER_ICON}
+      <span>${escapeHtml(name)}</span>
+    </div>
+    ${childrenHtml}
+  </div>`;
+}
+
+function handleFolderListClick(e) {
+  const toggle = e.target.closest('.folder-toggle[data-toggle]');
+  if (toggle) {
+    toggle.closest('.folder-node').classList.toggle('expanded');
+    return;
+  }
+
+  const option = e.target.closest('.folder-option');
+  if (option && !option.classList.contains('folder-option-disabled')) {
+    executeMove(option.dataset.folder);
+  }
+}
+
 export function createMoveDialog() {
   const dialog = document.createElement('div');
   dialog.className = 'confirm-overlay';
@@ -234,6 +299,7 @@ export function createMoveDialog() {
   document.body.appendChild(dialog);
 
   document.getElementById('cancel-move').addEventListener('click', hideMoveDialog);
+  document.getElementById('folder-list').addEventListener('click', handleFolderListClick);
   dialog.addEventListener('click', (e) => {
     if (e.target === dialog) hideMoveDialog();
   });
@@ -247,40 +313,33 @@ export async function showMoveDialog(path, name) {
 
   try {
     const files = await apiFetch('/api/files');
-    const cachedFolders = Object.keys(files).filter(f => f !== 'Root').sort();
+    const visibleFolders = Object.keys(files)
+      .filter(f => f !== 'Root' && !isHiddenFolder(f));
+
+    const tree = buildMoveFolderTree(visibleFolders);
+    const topLevelNames = Object.keys(tree.children).sort((a, b) => a.localeCompare(b));
 
     let html = '';
 
     if (currentFolder !== '') {
-      html += `<div class="folder-option" data-folder="">
-        <svg class="tree-icon folder-icon" viewBox="0 0 16 16" width="16" height="16">
-          <path d="M1.75 1A1.75 1.75 0 000 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0016 13.25v-8.5A1.75 1.75 0 0014.25 3H7.5a.25.25 0 01-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1H1.75z"></path>
-        </svg>
-        <span>Root</span>
+      html += `<div class="folder-node">
+        <div class="folder-option" data-folder="">
+          <span class="folder-toggle folder-toggle-spacer"></span>
+          ${FOLDER_ICON}
+          <span>Root</span>
+        </div>
       </div>`;
     }
 
-    for (const folder of cachedFolders) {
-      if (folder !== currentFolder) {
-        html += `<div class="folder-option" data-folder="${folder}">
-          <svg class="tree-icon folder-icon" viewBox="0 0 16 16" width="16" height="16">
-            <path d="M1.75 1A1.75 1.75 0 000 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0016 13.25v-8.5A1.75 1.75 0 0014.25 3H7.5a.25.25 0 01-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1H1.75z"></path>
-          </svg>
-          <span>${folder}</span>
-        </div>`;
-      }
-    }
+    html += topLevelNames
+      .map(topName => renderMoveFolderNode(topName, topName, tree.children[topName], currentFolder))
+      .join('');
 
     if (!html) {
       html = '<p class="no-folders">Khong co thu muc khac de di chuyen</p>';
     }
 
     document.getElementById('folder-list').innerHTML = html;
-
-    document.querySelectorAll('.folder-option').forEach(opt => {
-      opt.addEventListener('click', () => executeMove(opt.dataset.folder));
-    });
-
     document.getElementById('move-dialog').classList.add('show');
   } catch (error) {
     console.error('Error loading folders:', error);

@@ -1,9 +1,19 @@
 // Workspace persistence (client-side localStorage)
 //
-// Data model: see src/domain/workspace.js for typedefs.
 // localStorage key: 'workspacesState' — single JSON blob holding all workspaces
 // and the active id. Legacy key 'externalFolders' (flat string[]) is migrated
 // lazily on first read into a "Default" workspace.
+//
+// @typedef {Object} Workspace
+// @property {string} id - Unique id ('ws-default' reserved for Default)
+// @property {string} name - Human-readable workspace name
+// @property {string[]} folderPaths - Absolute paths of external folders
+// @property {number} createdAt - Unix epoch ms
+//
+// @typedef {Object} WorkspacesState
+// @property {number} version - Schema version (1)
+// @property {string} activeWorkspaceId - Id of the active workspace
+// @property {Workspace[]} workspaces - All workspaces, in user order
 
 const STATE_KEY = 'workspacesState';
 const LEGACY_FOLDERS_KEY = 'externalFolders';
@@ -78,7 +88,7 @@ function migrateFromLegacy() {
 }
 
 /**
- * @returns {import('../../src/domain/workspace.js').WorkspacesState}
+ * @returns {WorkspacesState}
  */
 export function getWorkspacesState() {
   let raw;
@@ -104,7 +114,7 @@ export function getWorkspacesState() {
 }
 
 /**
- * @param {import('../../src/domain/workspace.js').WorkspacesState} state
+ * @param {WorkspacesState} state
  */
 export function saveWorkspacesState(state) {
   localStorage.setItem(STATE_KEY, JSON.stringify(state));
@@ -126,7 +136,7 @@ export function setActiveWorkspaceId(id) {
 }
 
 /**
- * @returns {import('../../src/domain/workspace.js').Workspace[]}
+ * @returns {Workspace[]}
  */
 export function getWorkspaces() {
   return getWorkspacesState().workspaces;
@@ -134,14 +144,14 @@ export function getWorkspaces() {
 
 /**
  * @param {string} id
- * @returns {import('../../src/domain/workspace.js').Workspace | null}
+ * @returns {Workspace | null}
  */
 export function getWorkspaceById(id) {
   return getWorkspaces().find(w => w.id === id) || null;
 }
 
 /**
- * @returns {import('../../src/domain/workspace.js').Workspace}
+ * @returns {Workspace}
  */
 export function getActiveWorkspace() {
   const state = getWorkspacesState();
@@ -158,7 +168,7 @@ export function getActiveWorkspaceFolders() {
 
 /**
  * @param {string} name
- * @returns {import('../../src/domain/workspace.js').Workspace}
+ * @returns {Workspace}
  */
 export function createWorkspace(name) {
   const trimmed = (name || '').trim();
