@@ -2713,12 +2713,36 @@ ${mermaidError.message}</pre><pre>${data.content}</pre>`;
     }
   }
 
+  // public/modules/outline-toggle.js
+  var STORAGE_KEY2 = "outlineCollapsed";
+  var COLLAPSED_CLASS = "outline-collapsed";
+  var OVERLAY_BREAKPOINT = 1024;
+  function toggleOutlinePanel() {
+    if (window.innerWidth <= OVERLAY_BREAKPOINT) {
+      document.querySelector(".outline-sidebar").classList.toggle("open");
+      document.querySelector(".file-tree-sidebar").classList.remove("open");
+      return;
+    }
+    const isCollapsed = document.body.classList.toggle(COLLAPSED_CLASS);
+    localStorage.setItem(STORAGE_KEY2, String(isCollapsed));
+  }
+  function initOutlineToggle() {
+    if (localStorage.getItem(STORAGE_KEY2) === "true") {
+      document.body.classList.add(COLLAPSED_CLASS);
+    }
+    const button = document.getElementById("collapse-outline");
+    if (button)
+      button.addEventListener("click", toggleOutlinePanel);
+  }
+
   // public/modules/keyboard.js
   function setupKeyboardNavigation() {
     document.addEventListener("keydown", (e) => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable) {
         return;
       }
+      if (e.metaKey || e.ctrlKey)
+        return;
       const links = document.querySelectorAll(".outline-link");
       if (links.length === 0)
         return;
@@ -2761,6 +2785,8 @@ ${mermaidError.message}</pre><pre>${data.content}</pre>`;
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable) {
         return;
       }
+      if (e.metaKey || e.ctrlKey)
+        return;
       if (e.key === "f" || e.key === "F") {
         e.preventDefault();
         searchPanel2.style.display = "block";
@@ -2795,6 +2821,9 @@ ${mermaidError.message}</pre><pre>${data.content}</pre>`;
           e.preventDefault();
           toggleLeftPanel2();
         }
+      } else if (e.key === "o" || e.key === "O") {
+        e.preventDefault();
+        toggleOutlinePanel();
       } else if (e.key === "s" || e.key === "S") {
         const { folderFilter } = getState();
         if (!folderFilter)
@@ -2817,8 +2846,8 @@ ${mermaidError.message}</pre><pre>${data.content}</pre>`;
    ======================================== */
 
 :root {
-  /* Pure White Theme */
-  --bg-primary: #ffffff;
+  /* Light Theme (soft off-white background) */
+  --bg-primary: #f0f0f0;
   --bg-secondary: #f6f8fa;
   --bg-tertiary: #f6f8fa;
   --bg-hover: #eaeef2;
@@ -2921,8 +2950,44 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   overflow: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Grayscale smoothing thins glyphs; only apply it on Retina \u2014 on 1x external
+   monitors the default (stem-darkened) rendering looks less jagged. */
+@media (min-resolution: 2dppx) {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/InterVariable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/InterVariable-Italic.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* 1x (non-Retina) monitors: grayscale AA looks jagged, so use a screen-hinted
+   font, a slightly larger size and a hairline stroke to fill in thin stems. */
+@media (max-resolution: 1.99dppx) {
+  :root {
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    --content-base-size: 17px;
+  }
+
+  .markdown-body {
+    -webkit-text-stroke: 0.2px;
+  }
 }
 
 /* Header - Hidden */
@@ -3244,9 +3309,7 @@ body.resizing * {
 .viewer-content {
   background: var(--bg-primary);
   overflow-y: auto;
-  padding: 20px 20px 40px;
-  max-width: 900px;
-  margin: 0 auto;
+  padding: 20px 32px 40px;
   width: 100%;
 }
 
@@ -3343,21 +3406,21 @@ body.resizing * {
 
 .markdown-body h1 {
   font-size: 2em;
-  font-weight: 600;
+  font-weight: 400;
   padding-bottom: 0.3em;
   border-bottom: 1px solid var(--border-secondary);
 }
 
 .markdown-body h2 {
   font-size: 1.5em;
-  font-weight: 600;
+  font-weight: 500;
   padding-bottom: 0.3em;
   border-bottom: 1px solid var(--border-secondary);
 }
 
 .markdown-body h3 {
   font-size: 1.25em;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .markdown-body h4 {
@@ -3503,7 +3566,7 @@ body.resizing * {
 }
 
 .markdown-body strong {
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .markdown-body em {
@@ -3543,6 +3606,51 @@ body.resizing * {
 
 .outline {
   padding: 12px 0;
+}
+
+.outline-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.outline-header .outline-collapse-btn {
+  width: 24px;
+  height: 24px;
+  background: none;
+}
+
+/* Collapsed outline: a narrow rail holding only the expand button */
+@media (min-width: 1025px) {
+  body.outline-collapsed {
+    --right-sidebar-width: 36px;
+  }
+
+  body.outline-collapsed #resize-handle-right {
+    pointer-events: none;
+  }
+
+  body.outline-collapsed .outline-header {
+    justify-content: center;
+    padding: 12px 0;
+    border-bottom: none;
+  }
+
+  body.outline-collapsed .outline-header h3,
+  body.outline-collapsed .outline {
+    display: none;
+  }
+
+  body.outline-collapsed .outline-collapse-btn svg {
+    transform: rotate(180deg);
+  }
+}
+
+/* Narrow screens use the overlay's \u2715 instead */
+@media (max-width: 1024px) {
+  .outline-header .outline-collapse-btn {
+    display: none;
+  }
 }
 
 .no-outline {
@@ -5264,19 +5372,19 @@ ${scrollSpyJS}
   }
 
   // public/modules/resize.js
-  var STORAGE_KEY2 = "sidebarWidths";
+  var STORAGE_KEY3 = "sidebarWidths";
   var MIN_WIDTH = 160;
   var MAX_WIDTH_RATIO = 0.45;
   var MOBILE_BREAKPOINT = 1024;
   function loadWidths() {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY2)) || null;
+      return JSON.parse(localStorage.getItem(STORAGE_KEY3)) || null;
     } catch {
       return null;
     }
   }
   function saveWidths(widths) {
-    localStorage.setItem(STORAGE_KEY2, JSON.stringify(widths));
+    localStorage.setItem(STORAGE_KEY3, JSON.stringify(widths));
   }
   function clampWidth(width) {
     const max = window.innerWidth * MAX_WIDTH_RATIO;
@@ -5368,7 +5476,7 @@ ${scrollSpyJS}
   }
 
   // public/modules/zoom.js
-  var STORAGE_KEY3 = "contentZoom";
+  var STORAGE_KEY4 = "contentZoom";
   var MIN_ZOOM = 0.7;
   var MAX_ZOOM = 2.5;
   var STEP = 0.1;
@@ -5394,11 +5502,11 @@ ${scrollSpyJS}
       save2(fromUrl);
       return fromUrl;
     }
-    const v = parseFloat(localStorage.getItem(STORAGE_KEY3));
+    const v = parseFloat(localStorage.getItem(STORAGE_KEY4));
     return Number.isFinite(v) && v >= MIN_ZOOM && v <= MAX_ZOOM ? v : DEFAULT_ZOOM;
   }
   function save2(z) {
-    localStorage.setItem(STORAGE_KEY3, String(z));
+    localStorage.setItem(STORAGE_KEY4, String(z));
   }
   function apply(z) {
     document.documentElement.style.setProperty("--content-zoom", z);
@@ -5428,19 +5536,8 @@ ${scrollSpyJS}
       if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
         return;
       }
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === "=" || e.key === "+") {
-          e.preventDefault();
-          setZoom(currentZoom + STEP);
-        } else if (e.key === "-" || e.key === "_") {
-          e.preventDefault();
-          setZoom(currentZoom - STEP);
-        } else if (e.key === "0") {
-          e.preventDefault();
-          setZoom(DEFAULT_ZOOM);
-        }
+      if (e.ctrlKey || e.metaKey)
         return;
-      }
       if (e.key === "z") {
         e.preventDefault();
         setZoom(currentZoom + STEP);
@@ -5798,15 +5895,16 @@ ${scrollSpyJS}
   initResize();
   initZoom();
   initTheme();
+  initOutlineToggle();
   var toggleFileTreeButton = document.getElementById("toggle-file-tree");
   var toggleOutlineButton = document.getElementById("toggle-outline");
   var closeFileTreeButton = document.getElementById("close-file-tree");
   var closeOutlineButton = document.getElementById("close-outline");
   var fileTreeSidebar = document.querySelector(".file-tree-sidebar");
   var outlineSidebar = document.querySelector(".outline-sidebar");
-  var OVERLAY_BREAKPOINT = 1024;
+  var OVERLAY_BREAKPOINT2 = 1024;
   function toggleLeftPanel() {
-    if (window.innerWidth <= OVERLAY_BREAKPOINT) {
+    if (window.innerWidth <= OVERLAY_BREAKPOINT2) {
       fileTreeSidebar.classList.toggle("open");
       outlineSidebar.classList.remove("open");
     } else {
@@ -5814,10 +5912,7 @@ ${scrollSpyJS}
     }
   }
   toggleFileTreeButton.addEventListener("click", toggleLeftPanel);
-  toggleOutlineButton.addEventListener("click", () => {
-    outlineSidebar.classList.toggle("open");
-    fileTreeSidebar.classList.remove("open");
-  });
+  toggleOutlineButton.addEventListener("click", toggleOutlinePanel);
   closeFileTreeButton.addEventListener("click", () => {
     fileTreeSidebar.classList.remove("open");
   });

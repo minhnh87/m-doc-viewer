@@ -12,6 +12,7 @@ import { apiFetch } from './modules/api.js';
 import { navigateToFile } from './modules/navigation.js';
 import { initResize } from './modules/resize.js';
 import { initZoom } from './modules/zoom.js';
+import { initOutlineToggle, toggleOutlinePanel } from './modules/outline-toggle.js';
 import { initTheme } from './modules/theme.js';
 import { initQuickOpen, showQuickOpen } from './modules/quick-open.js';
 import { initEditor } from './modules/editor.js';
@@ -34,6 +35,9 @@ initZoom();
 // Initialize theme (light/dark)
 initTheme();
 
+// Outline collapse button + remembered state
+initOutlineToggle();
+
 // Toggle sidebars on mobile
 const toggleFileTreeButton = document.getElementById('toggle-file-tree');
 const toggleOutlineButton = document.getElementById('toggle-outline');
@@ -55,10 +59,7 @@ function toggleLeftPanel() {
 
 toggleFileTreeButton.addEventListener('click', toggleLeftPanel);
 
-toggleOutlineButton.addEventListener('click', () => {
-  outlineSidebar.classList.toggle('open');
-  fileTreeSidebar.classList.remove('open');
-});
+toggleOutlineButton.addEventListener('click', toggleOutlinePanel);
 
 closeFileTreeButton.addEventListener('click', () => {
   fileTreeSidebar.classList.remove('open');

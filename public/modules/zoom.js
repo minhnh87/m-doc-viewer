@@ -1,4 +1,4 @@
-// Content zoom controls (Ctrl + +/- and floating buttons)
+// Content zoom controls (z/Z keys and floating buttons)
 
 const STORAGE_KEY = 'contentZoom';
 const MIN_ZOOM = 0.7;
@@ -65,19 +65,8 @@ export function initZoom() {
       return;
     }
 
-    if (e.ctrlKey || e.metaKey) {
-      if (e.key === '=' || e.key === '+') {
-        e.preventDefault();
-        setZoom(currentZoom + STEP);
-      } else if (e.key === '-' || e.key === '_') {
-        e.preventDefault();
-        setZoom(currentZoom - STEP);
-      } else if (e.key === '0') {
-        e.preventDefault();
-        setZoom(DEFAULT_ZOOM);
-      }
-      return;
-    }
+    // Cmd/Ctrl + =/-/0 are left to the browser so they zoom the whole page.
+    if (e.ctrlKey || e.metaKey) return;
 
     if (e.key === 'z') {
       e.preventDefault();

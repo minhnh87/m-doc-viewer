@@ -5,6 +5,7 @@ import { navigateToFile } from './navigation.js';
 import { getState } from './state.js';
 import { enterEditMode } from './editor.js';
 import { showSearchResults } from './search.js';
+import { toggleOutlinePanel } from './outline-toggle.js';
 
 export function setupKeyboardNavigation() {
   document.addEventListener('keydown', (e) => {
@@ -12,6 +13,9 @@ export function setupKeyboardNavigation() {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
       return;
     }
+
+    // Cmd/Ctrl combos belong to the browser
+    if (e.metaKey || e.ctrlKey) return;
 
     const links = document.querySelectorAll('.outline-link');
     if (links.length === 0) return;
@@ -66,6 +70,9 @@ export function setupHotkeys(searchPanel, searchInput, toggleLeftPanel) {
       return;
     }
 
+    // Cmd/Ctrl combos (select all, find, print, address bar...) belong to the browser
+    if (e.metaKey || e.ctrlKey) return;
+
     if (e.key === 'f' || e.key === 'F') {
       // F => open search form, restore saved results, focus input
       e.preventDefault();
@@ -111,6 +118,10 @@ export function setupHotkeys(searchPanel, searchInput, toggleLeftPanel) {
         e.preventDefault();
         toggleLeftPanel();
       }
+    } else if (e.key === 'o' || e.key === 'O') {
+      // O => toggle right outline panel
+      e.preventDefault();
+      toggleOutlinePanel();
     } else if (e.key === 's' || e.key === 'S') {
       // S => open latest .md session inside {f}/.clsessions/ (only when ?f= is active)
       const { folderFilter } = getState();

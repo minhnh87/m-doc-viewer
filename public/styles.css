@@ -4,8 +4,8 @@
    ======================================== */
 
 :root {
-  /* Pure White Theme */
-  --bg-primary: #ffffff;
+  /* Light Theme (soft off-white background) */
+  --bg-primary: #f0f0f0;
   --bg-secondary: #f6f8fa;
   --bg-tertiary: #f6f8fa;
   --bg-hover: #eaeef2;
@@ -108,8 +108,44 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   overflow: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Grayscale smoothing thins glyphs; only apply it on Retina — on 1x external
+   monitors the default (stem-darkened) rendering looks less jagged. */
+@media (min-resolution: 2dppx) {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/InterVariable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("fonts/InterVariable-Italic.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* 1x (non-Retina) monitors: grayscale AA looks jagged, so use a screen-hinted
+   font, a slightly larger size and a hairline stroke to fill in thin stems. */
+@media (max-resolution: 1.99dppx) {
+  :root {
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    --content-base-size: 17px;
+  }
+
+  .markdown-body {
+    -webkit-text-stroke: 0.2px;
+  }
 }
 
 /* Header - Hidden */
@@ -528,21 +564,21 @@ body.resizing * {
 
 .markdown-body h1 {
   font-size: 2em;
-  font-weight: 600;
+  font-weight: 400;
   padding-bottom: 0.3em;
   border-bottom: 1px solid var(--border-secondary);
 }
 
 .markdown-body h2 {
   font-size: 1.5em;
-  font-weight: 600;
+  font-weight: 500;
   padding-bottom: 0.3em;
   border-bottom: 1px solid var(--border-secondary);
 }
 
 .markdown-body h3 {
   font-size: 1.25em;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .markdown-body h4 {
@@ -688,7 +724,7 @@ body.resizing * {
 }
 
 .markdown-body strong {
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .markdown-body em {
@@ -728,6 +764,51 @@ body.resizing * {
 
 .outline {
   padding: 12px 0;
+}
+
+.outline-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.outline-header .outline-collapse-btn {
+  width: 24px;
+  height: 24px;
+  background: none;
+}
+
+/* Collapsed outline: a narrow rail holding only the expand button */
+@media (min-width: 1025px) {
+  body.outline-collapsed {
+    --right-sidebar-width: 36px;
+  }
+
+  body.outline-collapsed #resize-handle-right {
+    pointer-events: none;
+  }
+
+  body.outline-collapsed .outline-header {
+    justify-content: center;
+    padding: 12px 0;
+    border-bottom: none;
+  }
+
+  body.outline-collapsed .outline-header h3,
+  body.outline-collapsed .outline {
+    display: none;
+  }
+
+  body.outline-collapsed .outline-collapse-btn svg {
+    transform: rotate(180deg);
+  }
+}
+
+/* Narrow screens use the overlay's ✕ instead */
+@media (max-width: 1024px) {
+  .outline-header .outline-collapse-btn {
+    display: none;
+  }
 }
 
 .no-outline {
