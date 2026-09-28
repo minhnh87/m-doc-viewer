@@ -330,6 +330,12 @@ export function restoreTreeState(state) {
   fileTree.scrollTop = state.scrollTop;
 }
 
+/** Scroll the active file into view inside the tree (no-op when absent). */
+export function revealActiveFile() {
+  const active = document.querySelector('#file-tree .tree-file.active');
+  if (active) active.scrollIntoView({ block: 'nearest' });
+}
+
 // --- Event handler wiring ---
 
 function attachTreeEventHandlers(fileTreeNav) {

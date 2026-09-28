@@ -6,6 +6,7 @@ vi.mock('../public/modules/state.js', () => ({ getState: () => ({ folderFilter: 
 vi.mock('../public/modules/editor.js', () => ({ enterEditMode: vi.fn() }));
 vi.mock('../public/modules/search.js', () => ({ showSearchResults: vi.fn() }));
 vi.mock('../public/modules/outline-toggle.js', () => ({ toggleOutlinePanel: vi.fn() }));
+vi.mock('../public/modules/last-talk.js', () => ({ openNextLastTalk: vi.fn() }));
 
 const keydownHandlers = [];
 let outlineLinks = [];
@@ -14,6 +15,7 @@ let apiFetch;
 let navigateToFile;
 let enterEditMode;
 let showSearchResults;
+let openNextLastTalk;
 const toggleLeftPanel = vi.fn();
 
 beforeAll(async () => {
@@ -29,6 +31,7 @@ beforeAll(async () => {
   ({ navigateToFile } = await import('../public/modules/navigation.js'));
   ({ enterEditMode } = await import('../public/modules/editor.js'));
   ({ showSearchResults } = await import('../public/modules/search.js'));
+  ({ openNextLastTalk } = await import('../public/modules/last-talk.js'));
   const { setupHotkeys, setupKeyboardNavigation } = await import('../public/modules/keyboard.js');
   setupKeyboardNavigation();
   setupHotkeys({ style: {} }, { focus: vi.fn() }, toggleLeftPanel);
@@ -52,6 +55,7 @@ function expectNoAppAction() {
   expect(navigateToFile).not.toHaveBeenCalled();
   expect(enterEditMode).not.toHaveBeenCalled();
   expect(showSearchResults).not.toHaveBeenCalled();
+  expect(openNextLastTalk).not.toHaveBeenCalled();
 }
 
 describe('O hotkey', () => {
@@ -74,14 +78,21 @@ describe('plain letter hotkeys still work', () => {
     ['f', () => showSearchResults],
     ['a', () => toggleLeftPanel],
     ['e', () => enterEditMode],
-    ['l', () => apiFetch],
-    ['p', () => apiFetch],
-    ['s', () => apiFetch],
+    ['l', () => openNextLastTalk],
   ])('%s triggers its app action', (key, getAction) => {
     const event = press(key);
 
     expect(getAction()).toHaveBeenCalledTimes(1);
     expect(event.preventDefault).toHaveBeenCalled();
+  });
+});
+
+describe('removed hotkeys (P latest plan, S latest session)', () => {
+  test.each(['p', 'P', 's', 'S'])('%s does nothing in the app', (key) => {
+    const event = press(key);
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expectNoAppAction();
   });
 });
 

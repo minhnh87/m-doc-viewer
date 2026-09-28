@@ -6,7 +6,7 @@ import {
 } from '../lib/errors.js';
 import { resolveInputPath } from '../lib/paths.js';
 import {
-  pathExists, getStat, readFile, readFileRange, writeFile,
+  pathExists, getStat, readFile, readFileRange, writeFile, writeNewFile, createDir,
 } from '../repositories/file-system.repo.js';
 
 /** Per-request slice cap (8 MiB). Clients loop offsets to read more. */
@@ -53,6 +53,40 @@ export async function readContent({ path: inputPath, encoding }) {
     type: getFileType(ext),
     content,
     encoding: enc,
+    size: stat.size,
+    mtime: stat.mtime,
+  };
+}
+
+/**
+ * Create a new file (parent directories are created as needed). Never
+ * overwrites: 409 when anything already exists at the path.
+ *
+ * @param {{ path: string, content: string }} input
+ * @returns {Promise<{ path: string, name: string, size: number, mtime: Date }>}
+ */
+export async function createFile({ path: inputPath, content }) {
+  const resolved = resolveInputPath(inputPath);
+
+  const bytes = Buffer.byteLength(content, 'utf-8');
+  if (bytes > config.maxFileBytes) {
+    throw new PayloadTooLargeError(
+      `Content too large: ${bytes} bytes (max ${config.maxFileBytes})`,
+    );
+  }
+
+  await createDir(path.dirname(resolved));
+  try {
+    await writeNewFile(resolved, content);
+  } catch (err) {
+    if (err.code === 'EEXIST') throw new ConflictError('A file with this name already exists');
+    throw err;
+  }
+  const stat = await getStat(resolved);
+
+  return {
+    path: resolved,
+    name: path.basename(resolved),
     size: stat.size,
     mtime: stat.mtime,
   };

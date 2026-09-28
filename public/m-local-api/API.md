@@ -502,6 +502,20 @@ by `ENABLE_WRITES` (returns `403` when disabled). Required params marked `*`.
 - `error` is one of: `"Path does not exist"`, `"Path is not a directory"`, or a
   raw filesystem error message.
 
+### 9.15 `POST /file` — create a new text file 🔒 writes
+- Auth: yes. Writes: **yes**.
+- Body: `{ "path": "/abs/dir/new.md", "content": "..." }` (both required;
+  `content` may be `""`). Written as UTF-8.
+- Missing parent directories are created (`mkdir -p`). **Never overwrites** —
+  the create is atomic (`O_EXCL`).
+- `201`:
+  ```json
+  { "path": "/abs/dir/new.md", "name": "new.md", "size": 42, "mtime": "2026-07-01T09:15:00.000Z" }
+  ```
+- Errors: `409 CONFLICT` "A file with this name already exists" (also when the
+  path is an existing directory); `413 FILE_TOO_LARGE` when content exceeds
+  `MAX_FILE_BYTES`; `403 WRITES_DISABLED`.
+
 ---
 
 ## 10. Quick reference
@@ -522,6 +536,7 @@ by `ENABLE_WRITES` (returns `403` when disabled). Required params marked `*`.
 | PUT | `/file/move` | ✓ | ✓ | `from, to` | `success, message, from, to` |
 | PUT | `/rename` | ✓ | ✓ | `path, newName` | `success, message, oldPath, newPath` |
 | POST | `/validate-folder` | ✓ | – | `path` | `valid` (+ `error` when invalid) |
+| POST | `/file` | ✓ | ✓ | `path, content` | `path, name, size, mtime` |
 
 All paths are relative to `{API_PREFIX}` (default `/apif7f9470e8818`).
 

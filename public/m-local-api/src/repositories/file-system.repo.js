@@ -50,6 +50,15 @@ export async function writeFile(p, content) {
   return fs.writeFile(p, content, 'utf-8');
 }
 
+/**
+ * Create a new file; fails with EEXIST if anything already exists at `p`
+ * (atomic — no check-then-write race).
+ * @param {string} p @param {string} content
+ */
+export async function writeNewFile(p, content) {
+  return fs.writeFile(p, content, { encoding: 'utf-8', flag: 'wx' });
+}
+
 /** @param {string} p */
 export async function deleteFile(p) {
   return fs.unlink(p);

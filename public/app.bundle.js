@@ -342,9 +342,6 @@
   function isExt(abs) {
     return !under(abs);
   }
-  function stripTrailingSlash(p) {
-    return String(p).replace(/\/+$/, "");
-  }
   function parseJsonArray(raw) {
     if (!raw)
       return [];
@@ -489,6 +486,13 @@
       body: JSON.stringify({ path: abs, content: body.content, baseMtime: body.baseMtime })
     });
   }
+  async function createFile(body) {
+    return rawFetch("/file", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: toAbs(body.path), content: body.content })
+    });
+  }
   async function moveFile(body) {
     await rawFetch("/file/move", {
       method: "PUT",
@@ -512,39 +516,6 @@
       body: JSON.stringify({ path: body.path })
     });
   }
-  async function latestPlan() {
-    const data = await rawFetch(`/newest${buildQuery({ dir: cfg().PLANS_DIR, ext: ".md" })}`);
-    return { path: data.path, name: data.name };
-  }
-  async function latestSession(sp) {
-    const folder = sp.get("folder");
-    const dir = `${stripTrailingSlash(folder)}/${cfg().SESSIONS_DIR_NAME || ".clsessions"}`;
-    const data = await rawFetch(`/newest${buildQuery({ dir, ext: ".md" })}`);
-    return { path: data.path, name: data.name };
-  }
-  async function lastTalk(sp) {
-    const folder = sp.get("folder");
-    const fileName = cfg().LAST_TALK_FILE || "last_talk.md";
-    const filePath = `${stripTrailingSlash(folder)}/${cfg().SESSIONS_DIR_NAME || ".clsessions"}/${fileName}`;
-    let response;
-    try {
-      response = await fetch(`${apiBase()}${apiPrefix()}/content${buildQuery({ path: filePath })}`, { headers: authHeaders() });
-    } catch (err) {
-      throw new Error(`Cannot reach API at ${apiBase()} \u2014 ${err.message}`);
-    }
-    if (response.status === 404)
-      throw new Error("last_talk.md not found");
-    if (!response.ok) {
-      let message = "Request failed";
-      try {
-        const d = await response.json();
-        message = d.error || message;
-      } catch {
-      }
-      throw new Error(message);
-    }
-    return { path: filePath, name: fileName };
-  }
   async function dispatch(url, options) {
     const method = (options.method || "GET").toUpperCase();
     const u = new URL(url, "http://local");
@@ -565,18 +536,14 @@
         return deleteFile(sp);
       case "/api/file/write":
         return writeFileContent(body);
+      case "/api/file/create":
+        return createFile(body);
       case "/api/file/move":
         return moveFile(body);
       case "/api/rename":
         return renameItem(body);
       case "/api/validate-folder":
         return validateFolder(body);
-      case "/api/latest-plan":
-        return latestPlan();
-      case "/api/latest-session":
-        return latestSession(sp);
-      case "/api/last-talk":
-        return lastTalk(sp);
       default:
         throw new Error(`Unsupported API route: ${u.pathname}`);
     }
@@ -1542,6 +1509,11 @@ ${mermaidError.message}</pre><pre>${data.content}</pre>`;
       }
     }
     fileTree.scrollTop = state3.scrollTop;
+  }
+  function revealActiveFile() {
+    const active = document.querySelector("#file-tree .tree-file.active");
+    if (active)
+      active.scrollIntoView({ block: "nearest" });
   }
   function attachTreeEventHandlers(fileTreeNav) {
     fileTreeNav.addEventListener("click", (e) => {
@@ -2735,6 +2707,40 @@ ${mermaidError.message}</pre><pre>${data.content}</pre>`;
       button.addEventListener("click", toggleOutlinePanel);
   }
 
+  // public/modules/last-talk.js
+  var LAST_TALK_FILES2 = ["last_talk.md", "last_talk_1.md", "last_talk_2.md"];
+  function nextLastTalkPaths(dir, currentPath) {
+    const paths = LAST_TALK_FILES2.map((name) => dir ? `${dir}/${name}` : name);
+    const index = paths.indexOf(currentPath);
+    return [...paths.slice(index + 1), ...paths.slice(0, index + 1)];
+  }
+  function lastTalkDir(folderFilter) {
+    if (!folderFilter)
+      return "";
+    const sessionsDir = (window.APP_CONFIG || {}).SESSIONS_DIR_NAME || ".clsessions";
+    return `${folderFilter.replace(/\/+$/, "")}/${sessionsDir}`;
+  }
+  async function fileExists(path, isExternal) {
+    try {
+      await apiFetch(`/api/content?path=${encodeURIComponent(path)}&external=${isExternal}`);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  async function openNextLastTalk() {
+    const { folderFilter, currentFilePath } = getState();
+    const isExternal = Boolean(folderFilter);
+    for (const path of nextLastTalkPaths(lastTalkDir(folderFilter), currentFilePath)) {
+      if (await fileExists(path, isExternal)) {
+        navigateToFile(path, isExternal);
+        return;
+      }
+    }
+    console.error("No last_talk file found");
+    alert("Khong co file last_talk trong thu muc nay");
+  }
+
   // public/modules/keyboard.js
   function setupKeyboardNavigation() {
     document.addEventListener("keydown", (e) => {
@@ -2794,25 +2800,7 @@ ${mermaidError.message}</pre><pre>${data.content}</pre>`;
         searchInput2.focus();
       } else if (e.key === "l" || e.key === "L") {
         e.preventDefault();
-        const { folderFilter } = getState();
-        if (!folderFilter) {
-          navigateToFile("last_talk.md", false);
-          return;
-        }
-        apiFetch(`/api/last-talk?folder=${encodeURIComponent(folderFilter)}`).then((data) => {
-          navigateToFile(data.path, true);
-        }).catch((error) => {
-          console.error("Error getting last_talk session:", error);
-          alert("Khong co file last_talk trong thu muc nay");
-        });
-      } else if (e.key === "p" || e.key === "P") {
-        e.preventDefault();
-        apiFetch("/api/latest-plan").then((data) => {
-          navigateToFile(data.path, true);
-        }).catch((error) => {
-          console.error("Error getting latest plan:", error);
-          alert("Loi: " + error.message);
-        });
+        openNextLastTalk();
       } else if (e.key === "e" || e.key === "E") {
         e.preventDefault();
         enterEditMode();
@@ -2824,17 +2812,6 @@ ${mermaidError.message}</pre><pre>${data.content}</pre>`;
       } else if (e.key === "o" || e.key === "O") {
         e.preventDefault();
         toggleOutlinePanel();
-      } else if (e.key === "s" || e.key === "S") {
-        const { folderFilter } = getState();
-        if (!folderFilter)
-          return;
-        e.preventDefault();
-        apiFetch(`/api/latest-session?folder=${encodeURIComponent(folderFilter)}`).then((data) => {
-          navigateToFile(data.path, true);
-        }).catch((error) => {
-          console.error("Error getting latest session:", error);
-          alert("Loi: " + error.message);
-        });
       }
     });
   }
@@ -2851,6 +2828,7 @@ ${mermaidError.message}</pre><pre>${data.content}</pre>`;
   --bg-secondary: #e8e8e8;
   --bg-tertiary: #e8e8e8;
   --bg-hover: #e0e0e0;
+  --bg-highlight: #e6f4ea;     /* green hover/selected highlight (light theme only) */
 
   /* Text Colors - GitHub style */
   --text-primary: #000;
@@ -2987,6 +2965,86 @@ body {
 
   .markdown-body {
     -webkit-text-stroke: 0.2px;
+  }
+}
+
+/* Drag & drop box (right end of .workspace-bar) */
+.file-drop-zone {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 320px;
+  height: 28px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1.5px dashed color-mix(in srgb, var(--text-tertiary) 60%, transparent);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  font-size: 13px;
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.file-drop-zone:hover,
+.file-drop-zone:focus-visible {
+  border-color: var(--text-tertiary);
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.file-drop-zone:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.file-drop-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  fill: currentColor;
+  transition: transform 0.15s ease;
+}
+
+/* Files are being dragged somewhere over the window: point at the target. */
+.file-drop-zone.drag-armed {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  animation: file-drop-pulse 1.4s ease-in-out infinite;
+}
+
+/* Files are over the box: ready to drop. */
+.file-drop-zone.drag-over {
+  border-style: solid;
+  border-color: var(--accent-primary);
+  background: var(--accent-light);
+  color: var(--accent-primary);
+  font-weight: 600;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 25%, transparent);
+  animation: none;
+}
+
+.file-drop-zone.drag-over .file-drop-icon {
+  transform: translateY(-2px);
+}
+
+@keyframes file-drop-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-primary) 30%, transparent); }
+  50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 15%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .file-drop-zone,
+  .file-drop-icon {
+    transition: none;
+  }
+
+  .file-drop-zone.drag-armed {
+    animation: none;
   }
 }
 
@@ -5112,6 +5170,33 @@ header h1 {
   fill: var(--accent-primary);
 }
 
+/* ========================================
+   LIGHT THEME - green highlight for hover and selection
+   (list rows, neutral buttons, selected file; dark theme keeps its own colors)
+   ======================================== */
+
+:root:not([data-theme="dark"]) .tree-folder-header:hover,
+:root:not([data-theme="dark"]) .tree-file:hover,
+:root:not([data-theme="dark"]) .outline-link:hover,
+:root:not([data-theme="dark"]) .file-card:hover,
+:root:not([data-theme="dark"]) .folder-option:not(.folder-option-disabled):hover,
+:root:not([data-theme="dark"]) .search-result-file:hover,
+:root:not([data-theme="dark"]) .search-match-line:hover,
+:root:not([data-theme="dark"]) .quick-open-item:hover,
+:root:not([data-theme="dark"]) .tree-file.active,
+:root:not([data-theme="dark"]) .action-btn:not(.delete-btn):not(.quick-btn):not(.active):not(:disabled):hover,
+:root:not([data-theme="dark"]) .ws-modal-btn:not(.ws-modal-ok):hover,
+:root:not([data-theme="dark"]) .toggle-file-tree:hover,
+:root:not([data-theme="dark"]) .toggle-outline:hover,
+:root:not([data-theme="dark"]) .zoom-controls .zoom-btn:hover,
+:root:not([data-theme="dark"]) .zoom-controls .zoom-level:hover,
+:root:not([data-theme="dark"]) .confirm-btn-cancel:hover,
+:root:not([data-theme="dark"]) .folder-toggle:hover,
+:root:not([data-theme="dark"]) .clear-search-btn:hover,
+:root:not([data-theme="dark"]) .hide-search-btn:hover,
+:root:not([data-theme="dark"]) .editor-cancel-btn:hover {
+  background: var(--bg-highlight);
+}
 `;
 
   // public/modules/export.js
@@ -5886,6 +5971,193 @@ ${scrollSpyJS}
     filteredFiles = [];
   }
 
+  // public/modules/file-drop.js
+  var DEFAULT_TARGET_DIR = "3_READING";
+  var MAX_RENAME_ATTEMPTS = 100;
+  var HTTP_CONFLICT = 409;
+  var DRAG_OVER_LABEL = "Th\u1EA3 \u0111\u1EC3 m\u1EDF";
+  var UNSAFE_NAME_CHARS = /[<>:"/\\|?*\u0000-\u001f]/g;
+  function targetDir() {
+    const dir = (window.APP_CONFIG || {}).DROP_TARGET_DIR || DEFAULT_TARGET_DIR;
+    return dir.replace(/^\/+|\/+$/g, "");
+  }
+  function sanitizeFileName(name) {
+    const cleaned = String(name || "").replace(UNSAFE_NAME_CHARS, "").trim();
+    return cleaned === "." || cleaned === ".." ? "" : cleaned;
+  }
+  function candidateName(name, attempt) {
+    if (attempt === 0)
+      return name;
+    const dot = name.lastIndexOf(".");
+    if (dot <= 0)
+      return `${name}-${attempt}`;
+    return `${name.slice(0, dot)}-${attempt}${name.slice(dot)}`;
+  }
+  function isBinaryContent(text) {
+    return text.includes("\0");
+  }
+  async function createWithUniqueName(dir, name, content) {
+    for (let attempt = 0; attempt < MAX_RENAME_ATTEMPTS; attempt++) {
+      const path = `${dir}/${candidateName(name, attempt)}`;
+      try {
+        await apiFetch("/api/file/create", {
+          method: "POST",
+          body: JSON.stringify({ path, content })
+        });
+        return path;
+      } catch (error) {
+        if (error.status !== HTTP_CONFLICT)
+          throw error;
+      }
+    }
+    throw new Error("\u0111\xE3 c\xF3 qu\xE1 nhi\u1EC1u file tr\xF9ng t\xEAn");
+  }
+  async function readText(file) {
+    try {
+      return await file.text();
+    } catch {
+      return null;
+    }
+  }
+  async function importFiles(files) {
+    const dir = targetDir();
+    const imported = [];
+    const skipped = [];
+    for (const file of files) {
+      const name = sanitizeFileName(file.name);
+      if (!name) {
+        skipped.push({ name: file.name, reason: "t\xEAn file kh\xF4ng h\u1EE3p l\u1EC7" });
+        continue;
+      }
+      const content = await readText(file);
+      if (content === null) {
+        skipped.push({ name: file.name, reason: "kh\xF4ng \u0111\u1ECDc \u0111\u01B0\u1EE3c file" });
+        continue;
+      }
+      if (isBinaryContent(content)) {
+        skipped.push({ name: file.name, reason: "kh\xF4ng ph\u1EA3i file text" });
+        continue;
+      }
+      try {
+        imported.push(await createWithUniqueName(dir, name, content));
+      } catch (error) {
+        console.error("Drop import failed:", file.name, error);
+        skipped.push({ name: file.name, reason: error.message });
+      }
+    }
+    return { imported, skipped };
+  }
+  async function handleDrop(files) {
+    if (!files.length)
+      return;
+    const { imported, skipped } = await importFiles(files);
+    if (imported.length) {
+      const treeState = saveTreeState();
+      navigateToFile(imported[0], false);
+      await loadFileTree();
+      restoreTreeState(treeState);
+      revealActiveFile();
+    }
+    if (skipped.length) {
+      const lines = skipped.map(({ name, reason }) => `- ${name}: ${reason}`);
+      alert(`Kh\xF4ng copy \u0111\u01B0\u1EE3c ${skipped.length} file:
+${lines.join("\n")}`);
+    }
+  }
+  function hasFiles(event) {
+    return Array.from(event.dataTransfer?.types || []).includes("Files");
+  }
+  function trackWindowDrag(zone) {
+    let depth = 0;
+    const disarm = () => {
+      depth = 0;
+      zone.classList.remove("drag-armed");
+    };
+    window.addEventListener("dragenter", (e) => {
+      if (!hasFiles(e))
+        return;
+      depth += 1;
+      zone.classList.add("drag-armed");
+    });
+    window.addEventListener("dragleave", (e) => {
+      if (!hasFiles(e))
+        return;
+      depth = Math.max(0, depth - 1);
+      if (depth === 0)
+        disarm();
+    });
+    window.addEventListener("dragover", (e) => {
+      if (hasFiles(e))
+        e.preventDefault();
+    });
+    window.addEventListener("drop", (e) => {
+      if (hasFiles(e))
+        e.preventDefault();
+      disarm();
+    });
+  }
+  function trackZoneDrag(zone) {
+    const label = zone.querySelector(".file-drop-label");
+    const idleLabel = label.textContent;
+    let depth = 0;
+    const setDragOver = (isOver) => {
+      zone.classList.toggle("drag-over", isOver);
+      label.textContent = isOver ? DRAG_OVER_LABEL : idleLabel;
+    };
+    zone.addEventListener("dragenter", (e) => {
+      if (!hasFiles(e))
+        return;
+      depth += 1;
+      setDragOver(true);
+    });
+    zone.addEventListener("dragover", (e) => {
+      if (!hasFiles(e))
+        return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    });
+    zone.addEventListener("dragleave", (e) => {
+      if (!hasFiles(e))
+        return;
+      depth = Math.max(0, depth - 1);
+      if (depth === 0)
+        setDragOver(false);
+    });
+    zone.addEventListener("drop", (e) => {
+      if (!hasFiles(e))
+        return;
+      e.preventDefault();
+      depth = 0;
+      setDragOver(false);
+      handleDrop(Array.from(e.dataTransfer.files));
+    });
+  }
+  function bindFilePicker(zone, input) {
+    const openPicker = () => input.click();
+    zone.addEventListener("click", openPicker);
+    zone.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ")
+        return;
+      e.preventDefault();
+      openPicker();
+    });
+    input.addEventListener("change", () => {
+      const files = Array.from(input.files || []);
+      input.value = "";
+      handleDrop(files);
+    });
+  }
+  function initFileDrop() {
+    const zone = document.getElementById("file-drop-zone");
+    const input = document.getElementById("file-drop-input");
+    if (!zone || !input)
+      return;
+    zone.title = `K\xE9o th\u1EA3 ho\u1EB7c click \u0111\u1EC3 ch\u1ECDn file \u2014 copy v\xE0o ${targetDir()}`;
+    trackWindowDrag(zone);
+    trackZoneDrag(zone);
+    bindFilePicker(zone, input);
+  }
+
   // public/view.js
   var state2 = getState();
   if (!state2.currentFilePath) {
@@ -5896,6 +6168,7 @@ ${scrollSpyJS}
   initZoom();
   initTheme();
   initOutlineToggle();
+  initFileDrop();
   var toggleFileTreeButton = document.getElementById("toggle-file-tree");
   var toggleOutlineButton = document.getElementById("toggle-outline");
   var closeFileTreeButton = document.getElementById("close-file-tree");
@@ -5938,15 +6211,6 @@ ${scrollSpyJS}
   });
   document.getElementById("quick-last-talk-btn").addEventListener("click", () => {
     navigateToFile("last_talk.md", false);
-  });
-  document.getElementById("quick-latest-plan-btn").addEventListener("click", async () => {
-    try {
-      const data = await apiFetch("/api/latest-plan");
-      navigateToFile(data.path, true);
-    } catch (error) {
-      console.error("Error getting latest plan:", error);
-      alert("Loi: " + error.message);
-    }
   });
   document.getElementById("export-html-btn").addEventListener("click", exportToStaticHTML);
   initEditor({ afterSave: loadContent });

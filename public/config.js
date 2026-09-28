@@ -16,14 +16,13 @@ window.APP_CONFIG = {
   // Directories hidden from the project file tree.
   PROJECT_EXCLUDE: ['node_modules', '.git', 'public', '.ipam', '.playwright-mcp'],
 
-  // Global "latest plan" directory (already expanded — no '~').
-  PLANS_DIR: '/Users/minh/.claude/plans',
-
   // Claude Code projects root for the conversation viewer (claude.html).
   // A leading '~' is fine here: m-local-api expands it server-side.
   CLAUDE_PROJECTS_DIR: '~/.claude/projects',
 
+  // Project folder that drag & dropped files are copied into.
+  DROP_TARGET_DIR: '3_READING',
+
   // Per-folder session conventions.
   SESSIONS_DIR_NAME: '.clsessions',
-  LAST_TALK_FILE: 'last_talk.md',
 };

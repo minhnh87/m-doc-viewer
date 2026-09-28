@@ -7,7 +7,7 @@
 // needs to change.
 
 import {
-  cfg, apiBase, apiPrefix, authHeaders, buildQuery, rawFetch,
+  cfg, buildQuery, rawFetch,
 } from './http-core.js';
 
 // --- project-relative <-> absolute helpers -------------------------------
@@ -33,9 +33,6 @@ function toRel(abs) {
 }
 function isExt(abs) {
   return !under(abs);
-}
-function stripTrailingSlash(p) {
-  return String(p).replace(/\/+$/, '');
 }
 function parseJsonArray(raw) {
   if (!raw) return [];
@@ -194,6 +191,14 @@ async function writeFileContent(body) {
   });
 }
 
+async function createFile(body) {
+  return rawFetch('/file', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ path: toAbs(body.path), content: body.content }),
+  });
+}
+
 async function moveFile(body) {
   await rawFetch('/file/move', {
     method: 'PUT',
@@ -220,39 +225,6 @@ async function validateFolder(body) {
   });
 }
 
-async function latestPlan() {
-  const data = await rawFetch(`/newest${buildQuery({ dir: cfg().PLANS_DIR, ext: '.md' })}`);
-  return { path: data.path, name: data.name };
-}
-
-async function latestSession(sp) {
-  const folder = sp.get('folder');
-  const dir = `${stripTrailingSlash(folder)}/${cfg().SESSIONS_DIR_NAME || '.clsessions'}`;
-  const data = await rawFetch(`/newest${buildQuery({ dir, ext: '.md' })}`);
-  return { path: data.path, name: data.name };
-}
-
-async function lastTalk(sp) {
-  const folder = sp.get('folder');
-  const fileName = cfg().LAST_TALK_FILE || 'last_talk.md';
-  const filePath = `${stripTrailingSlash(folder)}/${cfg().SESSIONS_DIR_NAME || '.clsessions'}/${fileName}`;
-
-  // Probe via /content — preserve old semantics: 404 throws.
-  let response;
-  try {
-    response = await fetch(`${apiBase()}${apiPrefix()}/content${buildQuery({ path: filePath })}`, { headers: authHeaders() });
-  } catch (err) {
-    throw new Error(`Cannot reach API at ${apiBase()} — ${err.message}`);
-  }
-  if (response.status === 404) throw new Error('last_talk.md not found');
-  if (!response.ok) {
-    let message = 'Request failed';
-    try { const d = await response.json(); message = d.error || message; } catch { /* ignore */ }
-    throw new Error(message);
-  }
-  return { path: filePath, name: fileName };
-}
-
 // --- dispatcher -----------------------------------------------------------
 
 async function dispatch(url, options) {
@@ -269,12 +241,10 @@ async function dispatch(url, options) {
     case '/api/folder': return method === 'DELETE' ? deleteFolder(sp) : createFolder(body);
     case '/api/file': return deleteFile(sp);
     case '/api/file/write': return writeFileContent(body);
+    case '/api/file/create': return createFile(body);
     case '/api/file/move': return moveFile(body);
     case '/api/rename': return renameItem(body);
     case '/api/validate-folder': return validateFolder(body);
-    case '/api/latest-plan': return latestPlan();
-    case '/api/latest-session': return latestSession(sp);
-    case '/api/last-talk': return lastTalk(sp);
     default: throw new Error(`Unsupported API route: ${u.pathname}`);
   }
 }

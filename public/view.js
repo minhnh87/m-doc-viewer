@@ -8,7 +8,6 @@ import { loadContent } from './modules/content-loader.js';
 import { setupKeyboardNavigation, setupHotkeys } from './modules/keyboard.js';
 import { exportToStaticHTML } from './modules/export.js';
 import { setupSearchListeners, restoreSearchState } from './modules/search.js';
-import { apiFetch } from './modules/api.js';
 import { navigateToFile } from './modules/navigation.js';
 import { initResize } from './modules/resize.js';
 import { initZoom } from './modules/zoom.js';
@@ -16,6 +15,7 @@ import { initOutlineToggle, toggleOutlinePanel } from './modules/outline-toggle.
 import { initTheme } from './modules/theme.js';
 import { initQuickOpen, showQuickOpen } from './modules/quick-open.js';
 import { initEditor } from './modules/editor.js';
+import { initFileDrop } from './modules/file-drop.js';
 
 // Initialize state check
 const state = getState();
@@ -37,6 +37,9 @@ initTheme();
 
 // Outline collapse button + remembered state
 initOutlineToggle();
+
+// Drag & drop files -> copy into DROP_TARGET_DIR and open
+initFileDrop();
 
 // Toggle sidebars on mobile
 const toggleFileTreeButton = document.getElementById('toggle-file-tree');
@@ -93,17 +96,6 @@ document.getElementById('quick-last-talk-btn').addEventListener('click', () => {
   navigateToFile('last_talk.md', false);
 });
 
-// Quick button: Latest Plan
-document.getElementById('quick-latest-plan-btn').addEventListener('click', async () => {
-  try {
-    const data = await apiFetch('/api/latest-plan');
-    navigateToFile(data.path, true);
-  } catch (error) {
-    console.error('Error getting latest plan:', error);
-    alert('Loi: ' + error.message);
-  }
-});
-
 // Export button handler
 document.getElementById('export-html-btn').addEventListener('click', exportToStaticHTML);
 
@@ -117,7 +109,7 @@ setupKeyboardNavigation();
 // Setup search listeners
 setupSearchListeners();
 
-// Setup hotkeys (F, L, P, A)
+// Setup hotkeys (F, L, A)
 const searchPanel = document.getElementById('search-panel');
 const searchInput = document.getElementById('search-input');
 setupHotkeys(searchPanel, searchInput, toggleLeftPanel);

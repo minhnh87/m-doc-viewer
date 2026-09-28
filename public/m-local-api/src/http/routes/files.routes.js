@@ -6,8 +6,22 @@ import { required, isString } from '../../lib/validation.js';
 import {
   removeFile, moveFile, renameItem,
 } from '../../services/files.service.js';
+import { createFile } from '../../services/content.service.js';
 
 export const filesRouter = Router();
+
+// `required()` rejects '' but creating an empty file is legal.
+const defined = () => (v) => (v !== undefined && v !== null) || 'is required';
+
+// Create a new file (no overwrite — 409 when the path already exists).
+filesRouter.post(
+  '/file',
+  requireWrites,
+  validate('body', { path: [required(), isString()], content: [defined(), isString()] }),
+  asyncHandler(async (req, res) => {
+    res.status(201).json(await createFile({ path: req.body.path, content: req.body.content }));
+  }),
+);
 
 filesRouter.delete(
   '/file',

@@ -564,3 +564,19 @@
   .claude-layout { grid-template-columns: minmax(0, 1fr); }
   .claude-sidebar-left { display: none; }
 }
+
+/* Light theme: green highlight for hover and selection (see styles.css --bg-highlight) */
+:root:not([data-theme="dark"]) .favourite-item:hover,
+:root:not([data-theme="dark"]) .session-item:hover,
+:root:not([data-theme="dark"]) .session-row.marked .session-item:hover,
+:root:not([data-theme="dark"]) .card-summary:hover,
+:root:not([data-theme="dark"]) .outline-item:hover,
+:root:not([data-theme="dark"]) .palette-item:hover,
+:root:not([data-theme="dark"]) .palette-item.active,
+:root:not([data-theme="dark"]) .claude-back:hover,
+:root:not([data-theme="dark"]) .claude-btn:not([aria-pressed="true"]):hover,
+:root:not([data-theme="dark"]) .favourite-star:hover,
+:root:not([data-theme="dark"]) .favourite-remove:hover,
+:root:not([data-theme="dark"]) .banner-action:hover {
+  background: var(--bg-highlight);
+}

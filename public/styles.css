@@ -9,6 +9,7 @@
   --bg-secondary: #e8e8e8;
   --bg-tertiary: #e8e8e8;
   --bg-hover: #e0e0e0;
+  --bg-highlight: #e6f4ea;     /* green hover/selected highlight (light theme only) */
 
   /* Text Colors - GitHub style */
   --text-primary: #000;
@@ -145,6 +146,86 @@ body {
 
   .markdown-body {
     -webkit-text-stroke: 0.2px;
+  }
+}
+
+/* Drag & drop box (right end of .workspace-bar) */
+.file-drop-zone {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 320px;
+  height: 28px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1.5px dashed color-mix(in srgb, var(--text-tertiary) 60%, transparent);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  font-size: 13px;
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.file-drop-zone:hover,
+.file-drop-zone:focus-visible {
+  border-color: var(--text-tertiary);
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.file-drop-zone:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.file-drop-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  fill: currentColor;
+  transition: transform 0.15s ease;
+}
+
+/* Files are being dragged somewhere over the window: point at the target. */
+.file-drop-zone.drag-armed {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  animation: file-drop-pulse 1.4s ease-in-out infinite;
+}
+
+/* Files are over the box: ready to drop. */
+.file-drop-zone.drag-over {
+  border-style: solid;
+  border-color: var(--accent-primary);
+  background: var(--accent-light);
+  color: var(--accent-primary);
+  font-weight: 600;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 25%, transparent);
+  animation: none;
+}
+
+.file-drop-zone.drag-over .file-drop-icon {
+  transform: translateY(-2px);
+}
+
+@keyframes file-drop-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-primary) 30%, transparent); }
+  50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 15%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .file-drop-zone,
+  .file-drop-icon {
+    transition: none;
+  }
+
+  .file-drop-zone.drag-armed {
+    animation: none;
   }
 }
 
@@ -2270,3 +2351,30 @@ header h1 {
   fill: var(--accent-primary);
 }
 
+/* ========================================
+   LIGHT THEME - green highlight for hover and selection
+   (list rows, neutral buttons, selected file; dark theme keeps its own colors)
+   ======================================== */
+
+:root:not([data-theme="dark"]) .tree-folder-header:hover,
+:root:not([data-theme="dark"]) .tree-file:hover,
+:root:not([data-theme="dark"]) .outline-link:hover,
+:root:not([data-theme="dark"]) .file-card:hover,
+:root:not([data-theme="dark"]) .folder-option:not(.folder-option-disabled):hover,
+:root:not([data-theme="dark"]) .search-result-file:hover,
+:root:not([data-theme="dark"]) .search-match-line:hover,
+:root:not([data-theme="dark"]) .quick-open-item:hover,
+:root:not([data-theme="dark"]) .tree-file.active,
+:root:not([data-theme="dark"]) .action-btn:not(.delete-btn):not(.quick-btn):not(.active):not(:disabled):hover,
+:root:not([data-theme="dark"]) .ws-modal-btn:not(.ws-modal-ok):hover,
+:root:not([data-theme="dark"]) .toggle-file-tree:hover,
+:root:not([data-theme="dark"]) .toggle-outline:hover,
+:root:not([data-theme="dark"]) .zoom-controls .zoom-btn:hover,
+:root:not([data-theme="dark"]) .zoom-controls .zoom-level:hover,
+:root:not([data-theme="dark"]) .confirm-btn-cancel:hover,
+:root:not([data-theme="dark"]) .folder-toggle:hover,
+:root:not([data-theme="dark"]) .clear-search-btn:hover,
+:root:not([data-theme="dark"]) .hide-search-btn:hover,
+:root:not([data-theme="dark"]) .editor-cancel-btn:hover {
+  background: var(--bg-highlight);
+}
