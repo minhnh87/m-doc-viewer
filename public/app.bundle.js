@@ -2846,11 +2846,11 @@ ${mermaidError.message}</pre><pre>${data.content}</pre>`;
    ======================================== */
 
 :root {
-  /* Light Theme (soft off-white background) */
+  /* Light Theme (light gray background) */
   --bg-primary: #f0f0f0;
-  --bg-secondary: #f6f8fa;
-  --bg-tertiary: #f6f8fa;
-  --bg-hover: #eaeef2;
+  --bg-secondary: #e8e8e8;
+  --bg-tertiary: #e8e8e8;
+  --bg-hover: #e0e0e0;
 
   /* Text Colors - GitHub style */
   --text-primary: #000;
