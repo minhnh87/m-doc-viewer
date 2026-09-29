@@ -13,6 +13,9 @@ import { getMarkedSessions, toggleSessionMark } from './lib/marked-sessions.js';
 import { shortDisplayPath } from './lib/paths.js';
 import { scrollToMessage } from './lib/scroll-to-message.js';
 import { attachKeyboardMap } from './lib/keyboard.js';
+import { initRightPanelToggle, toggleRightPanel } from './lib/right-panel-toggle.js';
+import { nextPromptIndex, nextRecentSession } from './lib/hotkey-nav.js';
+import { initZoom } from '../modules/zoom.js';
 
 import { createBanners } from './ui/banner.js';
 import { createProjectSwitcher } from './ui/project-switcher.js';
@@ -208,7 +211,9 @@ async function openSession(session) {
   state.userPrompts = userPrompts;
   els.stream.scrollTop = 0;
   renderMetadata(els.metadata, detail.session, { messageCount: detail.snapshot.messageCount });
-  renderOutline(els.outline, userPrompts, { onJump: (uuid) => scrollToMessage(uuid) });
+  renderOutline(els.outline, userPrompts, {
+    onJump: (uuid) => jumpToPrompt(state.userPrompts.findIndex((p) => p.uuid === uuid)),
+  });
 }
 
 /** Re-render the current stream in place (e.g. after toggling show-hidden). */
@@ -319,22 +324,34 @@ function buildCommands() {
 }
 
 // --- session navigation ----------------------------------------------------
-function navigateSession(delta) {
-  // j/k walks what the list shows, so filtering also narrows the navigation.
-  const sessions = visibleSessions();
-  if (!sessions.length) return;
-  const idx = sessions.findIndex((s) => s.id === state.sessionId);
-  const next = idx === -1 ? 0 : Math.min(sessions.length - 1, Math.max(0, idx + delta));
-  const session = sessions[next];
-  if (session) {
-    sessionList.scrollActiveIntoView(session.id);
-    openSession(session);
-  }
+/** Mark outline item `index` active and scroll both it and its message into view. */
+function jumpToPrompt(index) {
+  const prompt = state.userPrompts[index];
+  if (!prompt) return;
+  const items = els.outline.querySelectorAll('.outline-item');
+  items.forEach((item, i) => item.classList.toggle('active', i === index));
+  items[index]?.scrollIntoView({ block: 'nearest' });
+  scrollToMessage(prompt.uuid);
+}
+
+function navigatePrompt(delta) {
+  const items = [...els.outline.querySelectorAll('.outline-item')];
+  const current = items.findIndex((item) => item.classList.contains('active'));
+  const next = nextPromptIndex(current, delta, items.length);
+  if (next !== -1 && next !== current) jumpToPrompt(next);
+}
+
+function cycleRecentSessions() {
+  // Cycles what the list shows, so the marked filter also narrows it.
+  const session = nextRecentSession(visibleSessions(), state.sessionId);
+  if (!session || session.id === state.sessionId) return;
+  sessionList.scrollActiveIntoView(session.id);
+  openSession(session);
 }
 
 function showHelp() {
   banners.clear();
-  banners.info('Shortcuts: ⌘K/Ctrl-K palette · j/k next/prev session · ? help · Esc close', { dismissible: true });
+  banners.info('Shortcuts: ⌘P/Ctrl-P palette · j/k next/prev prompt · l cycle 3 newest sessions · o toggle panel · z/Z zoom · ? help · Esc close', { dismissible: true });
 }
 
 // --- helpers ---------------------------------------------------------------
@@ -348,6 +365,8 @@ function placeholder(text) {
 // --- boot ------------------------------------------------------------------
 function boot() {
   initTheme();
+  initRightPanelToggle();
+  initZoom();
   if (window.marked && typeof window.marked.setOptions === 'function') {
     window.marked.setOptions({ gfm: true, breaks: false });
   }
@@ -360,9 +379,11 @@ function boot() {
   els.markedSessionsBtn.addEventListener('click', () => setMarkedSessionsOnly(!state.markedSessionsOnly));
 
   attachKeyboardMap([
-    { key: 'k', mod: true, allowInInput: true, handler: () => palette.toggle() },
-    { key: 'j', handler: () => navigateSession(1) },
-    { key: 'k', handler: () => navigateSession(-1) },
+    { key: 'p', mod: true, shift: false, allowInInput: true, handler: () => palette.toggle() },
+    { key: 'j', handler: () => navigatePrompt(1) },
+    { key: 'k', handler: () => navigatePrompt(-1) },
+    { key: 'l', handler: () => cycleRecentSessions() },
+    { key: 'o', handler: () => toggleRightPanel() },
     { key: '?', handler: () => showHelp() },
     { key: 'Escape', allowInInput: true, preventDefault: false, handler: () => palette.close() },
   ]);

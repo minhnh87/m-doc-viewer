@@ -386,6 +386,8 @@ export async function executeMove(toFolder) {
 // ========================================
 // ADD EXTERNAL FOLDER DIALOG
 // ========================================
+const ADD_FOLDER_HINT = 'Folder se duoc luu va hien thi sau khi refresh trang';
+
 export function createAddFolderDialog() {
   const dialog = document.createElement('div');
   dialog.className = 'confirm-overlay';
@@ -397,7 +399,7 @@ export function createAddFolderDialog() {
       </div>
       <div class="confirm-body">
         <input type="text" id="add-folder-input" class="input-dialog-field" placeholder="Nhap duong dan folder (vd: /Users/minh/.claude/plans)" autocomplete="off">
-        <p class="add-folder-hint">Folder se duoc luu va hien thi sau khi refresh trang</p>
+        <p class="add-folder-hint">${ADD_FOLDER_HINT}</p>
       </div>
       <div class="confirm-actions">
         <button class="confirm-btn confirm-btn-cancel" id="cancel-add-folder">Huy</button>
@@ -420,9 +422,14 @@ export function createAddFolderDialog() {
   });
 }
 
-export function showAddFolderDialog() {
+// folderName: set when a folder was dragged in — the browser can't give its
+// absolute path, so tell the user how to copy it from Finder.
+export function showAddFolderDialog({ folderName } = {}) {
   const inputEl = document.getElementById('add-folder-input');
   inputEl.value = '';
+  document.querySelector('#add-folder-dialog .add-folder-hint').textContent = folderName
+    ? `Folder "${folderName}": chon no trong Finder, bam ⌥⌘C de copy duong dan roi dan vao day`
+    : ADD_FOLDER_HINT;
   document.getElementById('add-folder-dialog').classList.add('show');
   setTimeout(() => inputEl.focus(), 100);
 }

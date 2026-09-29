@@ -1,5 +1,5 @@
 /**
- * ⌘K / Ctrl-K command palette. Commands are supplied lazily by the caller
+ * ⌘P / Ctrl-P command palette. Commands are supplied lazily by the caller
  * (`getCommands`) so it always reflects the current project list + outline.
  * Each command is `{ kind, label, run }`. Filterable; Arrow/Enter/Escape nav,
  * Tab trapped within the dialog, focus restored to the opener on close.

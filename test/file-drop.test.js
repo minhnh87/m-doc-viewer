@@ -8,6 +8,7 @@ vi.mock('../public/modules/file-tree.js', () => ({
   restoreTreeState: vi.fn(),
   revealActiveFile: vi.fn(),
 }));
+vi.mock('../public/modules/dialogs.js', () => ({ showAddFolderDialog: vi.fn() }));
 
 let apiFetch;
 let navigateToFile;
@@ -15,11 +16,14 @@ let loadFileTree;
 let saveTreeState;
 let restoreTreeState;
 let revealActiveFile;
+let showAddFolderDialog;
 let sanitizeFileName;
 let candidateName;
 let isBinaryContent;
 let importFiles;
 let handleDrop;
+let classifyDrop;
+let routeDrop;
 
 beforeAll(async () => {
   globalThis.window = { APP_CONFIG: { DROP_TARGET_DIR: '3_READING' } };
@@ -29,8 +33,10 @@ beforeAll(async () => {
   ({
     loadFileTree, saveTreeState, restoreTreeState, revealActiveFile,
   } = await import('../public/modules/file-tree.js'));
+  ({ showAddFolderDialog } = await import('../public/modules/dialogs.js'));
   ({
     sanitizeFileName, candidateName, isBinaryContent, importFiles, handleDrop,
+    classifyDrop, routeDrop,
   } = await import('../public/modules/file-drop.js'));
 });
 
@@ -218,5 +224,76 @@ describe('handleDrop', () => {
     expect(apiFetch).not.toHaveBeenCalled();
     expect(navigateToFile).not.toHaveBeenCalled();
     expect(alert).not.toHaveBeenCalled();
+  });
+});
+
+// DataTransferItem stand-ins: webkitGetAsEntry() tells files from folders.
+function fileItem(file) {
+  return {
+    kind: 'file',
+    webkitGetAsEntry: () => ({ isDirectory: false, name: file.name }),
+    getAsFile: () => file,
+  };
+}
+
+function folderItem(name) {
+  return {
+    kind: 'file',
+    webkitGetAsEntry: () => ({ isDirectory: true, name }),
+    getAsFile: () => ({ name }),
+  };
+}
+
+describe('classifyDrop', () => {
+  test('splits dropped items into files and folder names', () => {
+    const file = fakeFile('a.md', 'a');
+
+    const result = classifyDrop([fileItem(file), folderItem('plans')]);
+
+    expect(result).toEqual({ files: [file], folderNames: ['plans'] });
+  });
+
+  test('ignores non-file items and items without an entry', () => {
+    const textItem = { kind: 'string', webkitGetAsEntry: () => null, getAsFile: () => null };
+    const noEntry = { kind: 'file', webkitGetAsEntry: () => null, getAsFile: () => null };
+
+    expect(classifyDrop([textItem, noEntry])).toEqual({ files: [], folderNames: [] });
+  });
+
+  test('returns empty lists when there are no items', () => {
+    expect(classifyDrop(undefined)).toEqual({ files: [], folderNames: [] });
+  });
+});
+
+describe('routeDrop', () => {
+  test('imports files through the existing flow when only files are dropped', async () => {
+    withExistingFiles([]);
+
+    await routeDrop({ files: [fakeFile('a.md', 'a')], folderNames: [] });
+
+    expect(navigateToFile).toHaveBeenCalledWith('3_READING/a.md', false);
+    expect(showAddFolderDialog).not.toHaveBeenCalled();
+  });
+
+  test('opens the add-folder dialog for a single dropped folder', async () => {
+    await routeDrop({ files: [], folderNames: ['plans'] });
+
+    expect(showAddFolderDialog).toHaveBeenCalledWith({ folderName: 'plans' });
+    expect(apiFetch).not.toHaveBeenCalled();
+  });
+
+  test('rejects a drop mixing files and folders', async () => {
+    await routeDrop({ files: [fakeFile('a.md', 'a')], folderNames: ['plans'] });
+
+    expect(alert).toHaveBeenCalledTimes(1);
+    expect(apiFetch).not.toHaveBeenCalled();
+    expect(showAddFolderDialog).not.toHaveBeenCalled();
+  });
+
+  test('rejects more than one folder at a time', async () => {
+    await routeDrop({ files: [], folderNames: ['plans', 'notes'] });
+
+    expect(alert).toHaveBeenCalledTimes(1);
+    expect(showAddFolderDialog).not.toHaveBeenCalled();
   });
 });

@@ -15584,6 +15584,112 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     return () => document.removeEventListener("keydown", onKeyDown);
   }
 
+  // public/claude/lib/right-panel-toggle.js
+  var STORAGE_KEY3 = "claudeRightPanelCollapsed";
+  var COLLAPSED_CLASS = "right-panel-collapsed";
+  function toggleRightPanel() {
+    const isCollapsed = document.body.classList.toggle(COLLAPSED_CLASS);
+    localStorage.setItem(STORAGE_KEY3, String(isCollapsed));
+  }
+  function initRightPanelToggle() {
+    if (localStorage.getItem(STORAGE_KEY3) === "true") {
+      document.body.classList.add(COLLAPSED_CLASS);
+    }
+    const button = document.getElementById("collapse-right-panel");
+    if (button)
+      button.addEventListener("click", toggleRightPanel);
+  }
+
+  // public/claude/lib/hotkey-nav.js
+  var RECENT_SESSION_COUNT = 3;
+  function nextPromptIndex(currentIndex, delta, count) {
+    if (count <= 0)
+      return -1;
+    if (currentIndex === -1)
+      return 0;
+    return Math.min(count - 1, Math.max(0, currentIndex + delta));
+  }
+  function nextRecentSession(sessions, currentId) {
+    const recent = sessions.slice(0, RECENT_SESSION_COUNT);
+    if (!recent.length)
+      return null;
+    const index = recent.findIndex((s) => s.id === currentId);
+    return recent[(index + 1) % recent.length];
+  }
+
+  // public/modules/zoom.js
+  var STORAGE_KEY4 = "contentZoom";
+  var MIN_ZOOM = 0.7;
+  var MAX_ZOOM = 2.5;
+  var STEP = 0.1;
+  var DEFAULT_ZOOM = 1;
+  var currentZoom = DEFAULT_ZOOM;
+  function loadFromUrl() {
+    try {
+      const raw = new URLSearchParams(window.location.search).get("zoom");
+      if (raw === null)
+        return null;
+      const n = parseFloat(raw);
+      if (!Number.isFinite(n))
+        return null;
+      const z2 = n > 5 ? n / 100 : n;
+      return z2 >= MIN_ZOOM && z2 <= MAX_ZOOM ? Math.round(z2 * 10) / 10 : null;
+    } catch {
+      return null;
+    }
+  }
+  function load() {
+    const fromUrl = loadFromUrl();
+    if (fromUrl !== null) {
+      save(fromUrl);
+      return fromUrl;
+    }
+    const v = parseFloat(localStorage.getItem(STORAGE_KEY4));
+    return Number.isFinite(v) && v >= MIN_ZOOM && v <= MAX_ZOOM ? v : DEFAULT_ZOOM;
+  }
+  function save(z2) {
+    localStorage.setItem(STORAGE_KEY4, String(z2));
+  }
+  function apply(z2) {
+    document.documentElement.style.setProperty("--content-zoom", z2);
+    const label = document.getElementById("zoom-level-btn");
+    if (label)
+      label.textContent = `${Math.round(z2 * 100)}%`;
+  }
+  function setZoom(z2) {
+    currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(z2 * 10) / 10));
+    apply(currentZoom);
+    save(currentZoom);
+  }
+  function initZoom() {
+    currentZoom = load();
+    apply(currentZoom);
+    const inBtn = document.getElementById("zoom-in-btn");
+    const outBtn = document.getElementById("zoom-out-btn");
+    const levelBtn = document.getElementById("zoom-level-btn");
+    if (inBtn)
+      inBtn.addEventListener("click", () => setZoom(currentZoom + STEP));
+    if (outBtn)
+      outBtn.addEventListener("click", () => setZoom(currentZoom - STEP));
+    if (levelBtn)
+      levelBtn.addEventListener("click", () => setZoom(DEFAULT_ZOOM));
+    document.addEventListener("keydown", (e) => {
+      const target = e.target;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+        return;
+      }
+      if (e.ctrlKey || e.metaKey)
+        return;
+      if (e.key === "z") {
+        e.preventDefault();
+        setZoom(currentZoom + STEP);
+      } else if (e.key === "Z") {
+        e.preventDefault();
+        setZoom(currentZoom - STEP);
+      }
+    });
+  }
+
   // public/claude/ui/dom.js
   function el(tag, props = {}, children = []) {
     const node = document.createElement(tag);
@@ -16639,7 +16745,9 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     state.userPrompts = userPrompts;
     els.stream.scrollTop = 0;
     renderMetadata(els.metadata, detail.session, { messageCount: detail.snapshot.messageCount });
-    renderOutline(els.outline, userPrompts, { onJump: (uuid3) => scrollToMessage(uuid3) });
+    renderOutline(els.outline, userPrompts, {
+      onJump: (uuid3) => jumpToPrompt(state.userPrompts.findIndex((p) => p.uuid === uuid3))
+    });
   }
   function rerenderStream() {
     if (!state.sessionId || !state.detail)
@@ -16734,21 +16842,32 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     }));
     return [...projectCmds, ...sessionCmds, ...promptCmds];
   }
-  function navigateSession(delta) {
-    const sessions = visibleSessions();
-    if (!sessions.length)
+  function jumpToPrompt(index) {
+    const prompt = state.userPrompts[index];
+    if (!prompt)
       return;
-    const idx = sessions.findIndex((s) => s.id === state.sessionId);
-    const next = idx === -1 ? 0 : Math.min(sessions.length - 1, Math.max(0, idx + delta));
-    const session = sessions[next];
-    if (session) {
-      sessionList.scrollActiveIntoView(session.id);
-      openSession(session);
-    }
+    const items = els.outline.querySelectorAll(".outline-item");
+    items.forEach((item, i) => item.classList.toggle("active", i === index));
+    items[index]?.scrollIntoView({ block: "nearest" });
+    scrollToMessage(prompt.uuid);
+  }
+  function navigatePrompt(delta) {
+    const items = [...els.outline.querySelectorAll(".outline-item")];
+    const current = items.findIndex((item) => item.classList.contains("active"));
+    const next = nextPromptIndex(current, delta, items.length);
+    if (next !== -1 && next !== current)
+      jumpToPrompt(next);
+  }
+  function cycleRecentSessions() {
+    const session = nextRecentSession(visibleSessions(), state.sessionId);
+    if (!session || session.id === state.sessionId)
+      return;
+    sessionList.scrollActiveIntoView(session.id);
+    openSession(session);
   }
   function showHelp() {
     banners.clear();
-    banners.info("Shortcuts: \u2318K/Ctrl-K palette \xB7 j/k next/prev session \xB7 ? help \xB7 Esc close", { dismissible: true });
+    banners.info("Shortcuts: \u2318P/Ctrl-P palette \xB7 j/k next/prev prompt \xB7 l cycle 3 newest sessions \xB7 o toggle panel \xB7 z/Z zoom \xB7 ? help \xB7 Esc close", { dismissible: true });
   }
   function placeholder(text) {
     const div = document.createElement("div");
@@ -16758,6 +16877,8 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
   }
   function boot() {
     initTheme();
+    initRightPanelToggle();
+    initZoom();
     if (window.marked && typeof window.marked.setOptions === "function") {
       window.marked.setOptions({ gfm: true, breaks: false });
     }
@@ -16768,9 +16889,11 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     els.paletteBtn.addEventListener("click", () => palette.toggle());
     els.markedSessionsBtn.addEventListener("click", () => setMarkedSessionsOnly(!state.markedSessionsOnly));
     attachKeyboardMap([
-      { key: "k", mod: true, allowInInput: true, handler: () => palette.toggle() },
-      { key: "j", handler: () => navigateSession(1) },
-      { key: "k", handler: () => navigateSession(-1) },
+      { key: "p", mod: true, shift: false, allowInInput: true, handler: () => palette.toggle() },
+      { key: "j", handler: () => navigatePrompt(1) },
+      { key: "k", handler: () => navigatePrompt(-1) },
+      { key: "l", handler: () => cycleRecentSessions() },
+      { key: "o", handler: () => toggleRightPanel() },
       { key: "?", handler: () => showHelp() },
       { key: "Escape", allowInInput: true, preventDefault: false, handler: () => palette.close() }
     ]);

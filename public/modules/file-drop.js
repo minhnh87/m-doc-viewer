@@ -1,18 +1,23 @@
 // Drag & drop: files dropped on the drop box are copied into the project's
 // DROP_TARGET_DIR (default 3_READING) and the first one is opened. Name clashes
 // are auto-renamed (notes.md -> notes-1.md) — existing files are never touched.
+// A dropped folder opens the "add external folder" dialog instead: the browser
+// never exposes its absolute path, so the user pastes it.
 
 import { apiFetch } from './api.js';
 import {
   loadFileTree, saveTreeState, restoreTreeState, revealActiveFile,
 } from './file-tree.js';
 import { navigateToFile } from './navigation.js';
+import { showAddFolderDialog } from './dialogs.js';
 
 const DEFAULT_TARGET_DIR = '3_READING';
 const MAX_RENAME_ATTEMPTS = 100;
 const HTTP_CONFLICT = 409;
 const DRAG_OVER_LABEL = 'Thả để mở';
 const UNSAFE_NAME_CHARS = /[<>:"/\\|?*\u0000-\u001f]/g;
+const MIXED_DROP_MESSAGE = 'Chỉ thả file hoặc folder, không thả lẫn lộn.';
+const MULTI_FOLDER_MESSAGE = 'Thả từng folder một.';
 
 function targetDir() {
   const dir = (window.APP_CONFIG || {}).DROP_TARGET_DIR || DEFAULT_TARGET_DIR;
@@ -116,6 +121,46 @@ export async function handleDrop(files) {
   }
 }
 
+/**
+ * Split dropped items into files and folder names. Must run synchronously inside
+ * the drop handler — DataTransferItems are emptied once the event returns.
+ * @param {DataTransferItemList|Array} items
+ * @returns {{ files: File[], folderNames: string[] }}
+ */
+export function classifyDrop(items) {
+  const files = [];
+  const folderNames = [];
+  for (const item of Array.from(items || [])) {
+    if (item.kind !== 'file') continue;
+    const entry = item.webkitGetAsEntry();
+    if (!entry) continue;
+    if (entry.isDirectory) {
+      folderNames.push(entry.name);
+      continue;
+    }
+    const file = item.getAsFile();
+    if (file) files.push(file);
+  }
+  return { files, folderNames };
+}
+
+/** Files -> copy flow; exactly one folder -> add-folder dialog; anything else is rejected. */
+export async function routeDrop({ files, folderNames }) {
+  if (files.length && folderNames.length) {
+    alert(MIXED_DROP_MESSAGE);
+    return;
+  }
+  if (folderNames.length > 1) {
+    alert(MULTI_FOLDER_MESSAGE);
+    return;
+  }
+  if (folderNames.length === 1) {
+    showAddFolderDialog({ folderName: folderNames[0] });
+    return;
+  }
+  await handleDrop(files);
+}
+
 function hasFiles(event) {
   return Array.from(event.dataTransfer?.types || []).includes('Files');
 }
@@ -179,7 +224,7 @@ function trackZoneDrag(zone) {
     e.preventDefault();
     depth = 0;
     setDragOver(false);
-    handleDrop(Array.from(e.dataTransfer.files));
+    routeDrop(classifyDrop(e.dataTransfer.items));
   });
 }
 

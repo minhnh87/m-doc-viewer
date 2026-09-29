@@ -39,23 +39,7 @@
   background: var(--bg-secondary);
   flex: 0 0 auto;
 }
-.claude-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--text-secondary);
-  text-decoration: none;
-  padding: 4px 8px;
-  border-radius: 6px;
-}
-.claude-back:hover { background: var(--bg-hover); color: var(--text-primary); }
-.claude-title {
-  font-size: 15px;
-  font-weight: 600;
-  margin: 0;
-  flex: 1 1 auto;
-}
-.claude-header-actions { display: flex; align-items: center; gap: 8px; }
+.claude-header-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 
 .claude-btn {
   background: var(--bg-primary);
@@ -102,6 +86,27 @@
 }
 .claude-sidebar-left { border-right: 1px solid var(--border-primary); }
 .claude-sidebar-right { border-left: 1px solid var(--border-primary); }
+
+/* Right panel collapse button (O hotkey) — mirrors the markdown viewer's outline toggle */
+.right-panel-header {
+  display: flex;
+  flex: 0 0 auto;
+  padding: 8px 6px 0;
+}
+.right-panel-header .right-panel-collapse-btn {
+  width: 24px;
+  height: 24px;
+  background: none;
+}
+
+/* Collapsed: a narrow rail holding only the expand button */
+@media (min-width: 1001px) {
+  body.right-panel-collapsed .claude-layout { grid-template-columns: 300px minmax(0, 1fr) 36px; }
+  body.right-panel-collapsed .right-panel-header { justify-content: center; padding: 12px 0; }
+  body.right-panel-collapsed .metadata-panel,
+  body.right-panel-collapsed .outline-panel { display: none; }
+  body.right-panel-collapsed .right-panel-collapse-btn svg { transform: rotate(180deg); }
+}
 
 .claude-main {
   display: flex;
@@ -294,8 +299,11 @@
   padding: 18px 22px 60vh;
   scroll-behavior: smooth;
 }
+/* Content zoom (z/Z, shared with the markdown viewer): scale everything in the
+   stream; .markdown-body opts out of its own font-size zoom to avoid doubling. */
+.message-stream > * { zoom: var(--content-zoom); }
+.message-stream .markdown-body { font-size: var(--content-base-size); }
 .msg {
-  max-width: 900px;
   margin: 0 auto 14px;
   border-radius: 10px;
   border: 1px solid var(--border-primary);
@@ -336,7 +344,6 @@
 
 /* Collapsible cards: thinking / tool-use / tool-result */
 .card {
-  max-width: 900px;
   margin: 0 auto 10px;
   border: 1px solid var(--border-secondary);
   border-radius: 9px;
@@ -492,6 +499,7 @@
   white-space: nowrap;
 }
 .outline-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.outline-item.active { background: var(--bg-tertiary); color: var(--text-primary); }
 
 /* ---- Command palette -------------------------------------- */
 .palette-overlay {
@@ -571,9 +579,9 @@
 :root:not([data-theme="dark"]) .session-row.marked .session-item:hover,
 :root:not([data-theme="dark"]) .card-summary:hover,
 :root:not([data-theme="dark"]) .outline-item:hover,
+:root:not([data-theme="dark"]) .outline-item.active,
 :root:not([data-theme="dark"]) .palette-item:hover,
 :root:not([data-theme="dark"]) .palette-item.active,
-:root:not([data-theme="dark"]) .claude-back:hover,
 :root:not([data-theme="dark"]) .claude-btn:not([aria-pressed="true"]):hover,
 :root:not([data-theme="dark"]) .favourite-star:hover,
 :root:not([data-theme="dark"]) .favourite-remove:hover,

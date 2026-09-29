@@ -1958,6 +1958,7 @@ ${mermaidError.message}</pre><pre>${data.content}</pre>`;
       alert("Loi: " + error.message);
     }
   }
+  var ADD_FOLDER_HINT = "Folder se duoc luu va hien thi sau khi refresh trang";
   function createAddFolderDialog() {
     const dialog = document.createElement("div");
     dialog.className = "confirm-overlay";
@@ -1969,7 +1970,7 @@ ${mermaidError.message}</pre><pre>${data.content}</pre>`;
       </div>
       <div class="confirm-body">
         <input type="text" id="add-folder-input" class="input-dialog-field" placeholder="Nhap duong dan folder (vd: /Users/minh/.claude/plans)" autocomplete="off">
-        <p class="add-folder-hint">Folder se duoc luu va hien thi sau khi refresh trang</p>
+        <p class="add-folder-hint">${ADD_FOLDER_HINT}</p>
       </div>
       <div class="confirm-actions">
         <button class="confirm-btn confirm-btn-cancel" id="cancel-add-folder">Huy</button>
@@ -1992,9 +1993,10 @@ ${mermaidError.message}</pre><pre>${data.content}</pre>`;
         hideAddFolderDialog();
     });
   }
-  function showAddFolderDialog() {
+  function showAddFolderDialog({ folderName } = {}) {
     const inputEl2 = document.getElementById("add-folder-input");
     inputEl2.value = "";
+    document.querySelector("#add-folder-dialog .add-folder-hint").textContent = folderName ? `Folder "${folderName}": chon no trong Finder, bam \u2325\u2318C de copy duong dan roi dan vao day` : ADD_FOLDER_HINT;
     document.getElementById("add-folder-dialog").classList.add("show");
     setTimeout(() => inputEl2.focus(), 100);
   }
@@ -2970,6 +2972,8 @@ body {
 
 /* Drag & drop box (right end of .workspace-bar) */
 .file-drop-zone {
+  --file-drop-hit-slop: 24px;
+  position: relative;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -2987,7 +2991,8 @@ body {
   white-space: nowrap;
   user-select: none;
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease,
+    width 0.2s ease, height 0.2s ease, margin 0.2s ease;
 }
 
 .file-drop-zone:hover,
@@ -3017,14 +3022,36 @@ body {
   animation: file-drop-pulse 1.4s ease-in-out infinite;
 }
 
-/* Files are over the box: ready to drop. */
+/* Invisible margin around the box that already counts as "over the box", so
+ * a drag doesn't need pixel-precise aim. Only while dragging \u2014 otherwise it
+ * would steal clicks from the neighbouring tabs. */
+.file-drop-zone.drag-armed::before {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--file-drop-hit-slop));
+  z-index: 60;
+}
+
+/* Files are over the box: ready to drop. The frame doubles in size (text
+ * stays put); negative margins keep its footprint in the bar at 320x28, so it
+ * grows left and down over the tabs/content instead of shifting the layout. */
 .file-drop-zone.drag-over {
-  border-style: solid;
-  border-color: var(--accent-primary);
-  background: var(--accent-light);
+  width: 640px;
+  height: 56px;
+  margin-left: -320px;
+  margin-bottom: -28px;
+  z-index: 60; /* above outline header (10), resize handles/float actions (50) */
+  transition-duration: 0.08s; /* snap open; closing uses the slower base timing */
+  /* Frosted glass: translucent accent tint blurring whatever is underneath. */
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 45%, transparent);
+  background: color-mix(in srgb, var(--accent-primary) 14%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
   color: var(--accent-primary);
   font-weight: 600;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 25%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 10px 30px color-mix(in srgb, var(--accent-primary) 25%, transparent);
   animation: none;
 }
 
@@ -3625,6 +3652,25 @@ body.resizing * {
 
 .markdown-body strong {
   font-weight: 400;
+}
+
+/* Retina (built-in Mac screen): restore the original white theme and heading
+   weights \u2014 the gray background and lighter weights are tuned for 1x monitors.
+   Placed after the heading rules so it wins on source order. */
+@media (min-resolution: 2dppx) {
+  :root:not([data-theme="dark"]) {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f6f8fa;
+    --bg-tertiary: #f6f8fa;
+    --bg-hover: #eaeef2;
+  }
+
+  .markdown-body h1,
+  .markdown-body h2,
+  .markdown-body h3,
+  .markdown-body strong {
+    font-weight: 600;
+  }
 }
 
 .markdown-body em {
@@ -5977,6 +6023,8 @@ ${scrollSpyJS}
   var HTTP_CONFLICT = 409;
   var DRAG_OVER_LABEL = "Th\u1EA3 \u0111\u1EC3 m\u1EDF";
   var UNSAFE_NAME_CHARS = /[<>:"/\\|?*\u0000-\u001f]/g;
+  var MIXED_DROP_MESSAGE = "Ch\u1EC9 th\u1EA3 file ho\u1EB7c folder, kh\xF4ng th\u1EA3 l\u1EABn l\u1ED9n.";
+  var MULTI_FOLDER_MESSAGE = "Th\u1EA3 t\u1EEBng folder m\u1ED9t.";
   function targetDir() {
     const dir = (window.APP_CONFIG || {}).DROP_TARGET_DIR || DEFAULT_TARGET_DIR;
     return dir.replace(/^\/+|\/+$/g, "");
@@ -6064,6 +6112,40 @@ ${scrollSpyJS}
 ${lines.join("\n")}`);
     }
   }
+  function classifyDrop(items) {
+    const files = [];
+    const folderNames = [];
+    for (const item of Array.from(items || [])) {
+      if (item.kind !== "file")
+        continue;
+      const entry = item.webkitGetAsEntry();
+      if (!entry)
+        continue;
+      if (entry.isDirectory) {
+        folderNames.push(entry.name);
+        continue;
+      }
+      const file = item.getAsFile();
+      if (file)
+        files.push(file);
+    }
+    return { files, folderNames };
+  }
+  async function routeDrop({ files, folderNames }) {
+    if (files.length && folderNames.length) {
+      alert(MIXED_DROP_MESSAGE);
+      return;
+    }
+    if (folderNames.length > 1) {
+      alert(MULTI_FOLDER_MESSAGE);
+      return;
+    }
+    if (folderNames.length === 1) {
+      showAddFolderDialog({ folderName: folderNames[0] });
+      return;
+    }
+    await handleDrop(files);
+  }
   function hasFiles(event) {
     return Array.from(event.dataTransfer?.types || []).includes("Files");
   }
@@ -6129,7 +6211,7 @@ ${lines.join("\n")}`);
       e.preventDefault();
       depth = 0;
       setDragOver(false);
-      handleDrop(Array.from(e.dataTransfer.files));
+      routeDrop(classifyDrop(e.dataTransfer.items));
     });
   }
   function bindFilePicker(zone, input) {

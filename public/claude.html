@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Claude Conversations</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="claude-logo.svg">
   <!-- Apply theme early to prevent FOUC (same guard as the markdown viewer) -->
   <script>
     (function () {
@@ -39,13 +39,10 @@
 <body>
   <div class="claude-app">
     <header class="claude-header">
-      <a class="claude-back" href="index.html" title="Back to markdown viewer">
-        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h8.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06Z"/></svg>
-        <span>Files</span>
-      </a>
-      <h1 class="claude-title">Claude Conversations</h1>
+      <a href="index.html?path=last_talk.md" class="logo-link" title="Last Talk"><img src="favicon.svg" alt="Logo" class="header-logo"></a>
+      <a href="claude.html" class="logo-link" title="Claude Conversations"><img src="claude-logo.svg" alt="Claude Conversations" class="header-logo"></a>
       <div class="claude-header-actions">
-        <button id="palette-btn" class="claude-btn" title="Command palette (⌘K)">⌘K</button>
+        <button id="palette-btn" class="claude-btn" title="Command palette (⌘P)">⌘P</button>
         <label class="claude-toggle" title="Show hidden events (attachments, system, …)">
           <input type="checkbox" id="show-hidden-toggle">
           <span>Show hidden</span>
@@ -83,6 +80,11 @@
 
       <!-- Right: metadata + outline -->
       <aside class="claude-sidebar claude-sidebar-right" id="claude-sidebar-right">
+        <div class="right-panel-header">
+          <button id="collapse-right-panel" class="action-btn right-panel-collapse-btn" title="Ẩn/hiện panel (O)" aria-label="Ẩn/hiện panel">
+            <svg viewBox="0 0 16 16"><path d="M8.22 2.97a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.751.751 0 01-1.042-.018.751.751 0 01-.018-1.042l2.97-2.97H3.75a.75.75 0 010-1.5h7.44L8.22 4.03a.75.75 0 010-1.06z"></path></svg>
+          </button>
+        </div>
         <div class="metadata-panel" id="metadata-panel"></div>
         <nav class="outline-panel" id="outline-panel" aria-label="Prompt outline"></nav>
       </aside>
@@ -94,6 +96,13 @@
         <input type="text" id="palette-input" class="palette-input" placeholder="Switch project or jump to a prompt…" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="palette-results" aria-autocomplete="list" aria-label="Search projects, sessions, and prompts">
         <ul class="palette-results" id="palette-results" role="listbox" aria-label="Commands"></ul>
       </div>
+    </div>
+
+    <!-- Zoom Controls (same as the markdown viewer; level shared via localStorage) -->
+    <div class="zoom-controls" id="zoom-controls">
+      <button class="zoom-btn" id="zoom-out-btn" title="Zoom Out (Shift+Z)">−</button>
+      <button class="zoom-level" id="zoom-level-btn" title="Reset zoom">100%</button>
+      <button class="zoom-btn" id="zoom-in-btn" title="Zoom In (Z)">+</button>
     </div>
   </div>
 
