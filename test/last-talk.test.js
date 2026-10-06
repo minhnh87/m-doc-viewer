@@ -41,31 +41,39 @@ function probedPaths() {
 
 describe('nextLastTalkPaths', () => {
   test.each([
-    ['last_talk.md', ['last_talk_1.md', 'last_talk_2.md', 'last_talk.md']],
-    ['last_talk_1.md', ['last_talk_2.md', 'last_talk.md', 'last_talk_1.md']],
-    ['last_talk_2.md', ['last_talk.md', 'last_talk_1.md', 'last_talk_2.md']],
+    ['last_talk.md', ['last_talk_1.md', 'last_talk_2.md', 'last_talk_3.md', 'last_talk_4.md', 'last_talk.md']],
+    ['last_talk_1.md', ['last_talk_2.md', 'last_talk_3.md', 'last_talk_4.md', 'last_talk.md', 'last_talk_1.md']],
+    ['last_talk_2.md', ['last_talk_3.md', 'last_talk_4.md', 'last_talk.md', 'last_talk_1.md', 'last_talk_2.md']],
+    ['last_talk_3.md', ['last_talk_4.md', 'last_talk.md', 'last_talk_1.md', 'last_talk_2.md', 'last_talk_3.md']],
+    ['last_talk_4.md', ['last_talk.md', 'last_talk_1.md', 'last_talk_2.md', 'last_talk_3.md', 'last_talk_4.md']],
   ])('after %s tries the following files, wrapping around', (current, expected) => {
     expect(nextLastTalkPaths('', current)).toEqual(expected);
   });
 
   test('starts at last_talk.md when the current file is not a last_talk file', () => {
     expect(nextLastTalkPaths('', 'notes/todo.md'))
-      .toEqual(['last_talk.md', 'last_talk_1.md', 'last_talk_2.md']);
+      .toEqual(['last_talk.md', 'last_talk_1.md', 'last_talk_2.md', 'last_talk_3.md', 'last_talk_4.md']);
   });
 
   test('starts at last_talk.md when the current file is a last_talk in another dir', () => {
     expect(nextLastTalkPaths(SESSIONS, '/other/.clsessions/last_talk.md'))
-      .toEqual([`${SESSIONS}/last_talk.md`, `${SESSIONS}/last_talk_1.md`, `${SESSIONS}/last_talk_2.md`]);
+      .toEqual([
+        `${SESSIONS}/last_talk.md`, `${SESSIONS}/last_talk_1.md`, `${SESSIONS}/last_talk_2.md`,
+        `${SESSIONS}/last_talk_3.md`, `${SESSIONS}/last_talk_4.md`,
+      ]);
   });
 
   test('prefixes paths with the given dir', () => {
     expect(nextLastTalkPaths(SESSIONS, `${SESSIONS}/last_talk_1.md`))
-      .toEqual([`${SESSIONS}/last_talk_2.md`, `${SESSIONS}/last_talk.md`, `${SESSIONS}/last_talk_1.md`]);
+      .toEqual([
+        `${SESSIONS}/last_talk_2.md`, `${SESSIONS}/last_talk_3.md`, `${SESSIONS}/last_talk_4.md`,
+        `${SESSIONS}/last_talk.md`, `${SESSIONS}/last_talk_1.md`,
+      ]);
   });
 
   test('handles a null current path', () => {
     expect(nextLastTalkPaths('', null))
-      .toEqual(['last_talk.md', 'last_talk_1.md', 'last_talk_2.md']);
+      .toEqual(['last_talk.md', 'last_talk_1.md', 'last_talk_2.md', 'last_talk_3.md', 'last_talk_4.md']);
   });
 });
 
@@ -80,9 +88,18 @@ describe('openNextLastTalk without folder filter (project root)', () => {
     expect(navigateToFile).toHaveBeenCalledWith('last_talk_1.md', false);
   });
 
-  test('wraps from last_talk_2.md back to last_talk.md', async () => {
+  test('goes from last_talk_2.md on to last_talk_3.md', async () => {
     getState.mockReturnValue({ folderFilter: null, currentFilePath: 'last_talk_2.md' });
-    withExistingFiles(['last_talk.md', 'last_talk_1.md', 'last_talk_2.md']);
+    withExistingFiles(['last_talk.md', 'last_talk_1.md', 'last_talk_2.md', 'last_talk_3.md', 'last_talk_4.md']);
+
+    await openNextLastTalk();
+
+    expect(navigateToFile).toHaveBeenCalledWith('last_talk_3.md', false);
+  });
+
+  test('wraps from last_talk_4.md back to last_talk.md', async () => {
+    getState.mockReturnValue({ folderFilter: null, currentFilePath: 'last_talk_4.md' });
+    withExistingFiles(['last_talk.md', 'last_talk_1.md', 'last_talk_2.md', 'last_talk_3.md', 'last_talk_4.md']);
 
     await openNextLastTalk();
 

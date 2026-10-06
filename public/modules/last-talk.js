@@ -1,4 +1,4 @@
-// L hotkey: cycle last_talk.md → last_talk_1.md → last_talk_2.md → last_talk.md,
+// L hotkey: cycle last_talk.md → last_talk_1.md → … → last_talk_4.md → last_talk.md,
 // skipping files that don't exist.
 //   - no ?f= active: files in the project root
 //   - ?f={folder} active: files in {folder}/.clsessions/
@@ -7,7 +7,7 @@ import { apiFetch } from './api.js';
 import { navigateToFile } from './navigation.js';
 import { getState } from './state.js';
 
-const LAST_TALK_FILES = ['last_talk.md', 'last_talk_1.md', 'last_talk_2.md'];
+const LAST_TALK_FILES = ['last_talk.md', 'last_talk_1.md', 'last_talk_2.md', 'last_talk_3.md', 'last_talk_4.md'];
 
 /**
  * Paths to try, in order, for the next L press: the files after `currentPath`
